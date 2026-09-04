@@ -1551,6 +1551,36 @@ input:focus,textarea:focus,select:focus{
   color:#fff;
   box-shadow:0 0 12px rgba(255,59,79,.20);
 }
+.create-preview-cell.answer-hidden{
+  background:#211d37;
+  border-color:#373150;
+  color:#eeeaf8;
+  box-shadow:none;
+}
+.create-preview-cell.answer-start::after{
+  content:"";
+  position:absolute;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(255,75,93,.45);
+}
+.create-preview-cell{position:relative}
+.preview-answer-info{
+  width:min(500px,100%);
+  margin:12px auto 0;
+  padding:10px 12px;
+  border:1px solid #302b4b;
+  border-radius:12px;
+  background:rgba(20,17,36,.92);
+  color:#bdb7cf;
+  font-size:11px;
+  line-height:1.55;
+}
+.preview-answer-info strong{color:#fff}
+.preview-answer-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.preview-answer-dot{width:8px;height:8px;border-radius:50%;background:#ff4b5d;display:inline-block;flex:0 0 auto}
 @media(max-width:900px){
   .create-layout{grid-template-columns:1fr}
   .create-preview{min-height:430px}
@@ -2300,6 +2330,7 @@ body.shared-game-mode #gamePage .selection-arrow {
 
         <div class="create-actions">
           <button class="btn btn-primary" onclick="generateCreatePreview()">🧩 Generate Puzzle</button>
+          <button id="togglePreviewAnswers" class="btn btn-secondary" onclick="togglePreviewAnswers()" style="display:none;">👁️ Answers: ON</button>
 
           <button
               id="savePuzzleBtn"
@@ -3130,6 +3161,7 @@ function editPuzzle(id){
         String(puzzle.size);
 
     setDirectionCount(puzzle.directionCount || 8);
+    generateCreatePreview(false);
 
 
     const modal = document.getElementById("createPage");
@@ -6145,6 +6177,11 @@ function clearCreate(){
     setGridSize(10);
     renderWordChips();
 
+    lastCreatePreview=null;
+    previewAnswersVisible=true;
+    const answerButton=document.getElementById("togglePreviewAnswers");
+    if(answerButton) answerButton.style.display="none";
+
     const preview=document.getElementById("createPreviewGrid");
     if(preview){
         preview.innerHTML=`
@@ -6171,41 +6208,175 @@ function setDirectionCount(count){
     });
 }
 
+let lastCreatePreview = null;
+let previewAnswersVisible = true;
+
+function togglePreviewAnswers(){
+    previewAnswersVisible = !previewAnswersVisible;
+
+    const button = document.getElementById("togglePreviewAnswers");
+    if(button){
+        button.textContent = previewAnswersVisible
+            ? "👁️ Answers: ON"
+            : "🙈 Answers: OFF";
+    }
+
+    applyPreviewAnswerVisibility();
+}
+
+function applyPreviewAnswerVisibility(){
+    const preview = document.getElementById("createPreviewGrid");
+    if(!preview) return;
+
+    preview.querySelectorAll(".create-preview-cell").forEach(cell => {
+        const isAnswer = cell.dataset.answer === "1";
+        cell.classList.toggle("word-hit", previewAnswersVisible && isAnswer);
+        cell.classList.toggle("answer-hidden", !previewAnswersVisible && isAnswer);
+    });
+
+    const info = preview.querySelector(".preview-answer-info");
+    if(info){
+        info.style.display = previewAnswersVisible ? "block" : "none";
+    }
+}
+
+function getPlacementCells(placement){
+    if(!placement || !placement.start || !placement.end) return [];
+
+    const rowStep = Math.sign(placement.end.row - placement.start.row);
+    const colStep = Math.sign(placement.end.col - placement.start.col);
+    const length = Math.max(
+        Math.abs(placement.end.row - placement.start.row),
+        Math.abs(placement.end.col - placement.start.col)
+    ) + 1;
+
+    const cells = [];
+    for(let i=0;i<length;i++){
+        cells.push({
+            row: placement.start.row + rowStep*i,
+            col: placement.start.col + colStep*i
+        });
+    }
+    return cells;
+}
+
+function placementDirection(placement){
+    if(!placement || !placement.start || !placement.end) return "→";
+    const dr = Math.sign(placement.end.row - placement.start.row);
+    const dc = Math.sign(placement.end.col - placement.start.col);
+
+    const map = {
+        "0,1":"→",
+        "0,-1":"←",
+        "1,0":"↓",
+        "-1,0":"↑",
+        "1,1":"↘",
+        "-1,-1":"↖",
+        "1,-1":"↙",
+        "-1,1":"↗"
+    };
+    return map[`${dr},${dc}`] || "→";
+}
+
 function generateCreatePreview(showMessage=true){
     updateCreateWordCount();
-    const words=getCreateWords();
-    const preview=document.getElementById("createPreviewGrid");
-    if(!preview)return;
+
+    const words = getCreateWords();
+    const preview = document.getElementById("createPreviewGrid");
+    const answerButton = document.getElementById("togglePreviewAnswers");
+
+    if(!preview) return;
+
     if(!words.length){
+        lastCreatePreview = null;
         preview.innerHTML='<div class="preview-empty"><div class="preview-icon">🧩</div><div class="preview-title">Your puzzle preview will appear here</div><div class="preview-subtitle">Add words and hit Generate.</div></div>';
+        if(answerButton) answerButton.style.display="none";
         if(showMessage) toast("Add at least one word first.");
         return;
     }
-    const size=Math.max(10,Number(document.getElementById("gridSize")?.value||10));
-    const directionCount=Number(document.getElementById("directionCount")?.value||8);
-    const generated=generatePuzzle(words,size,directionCount);
+
+    const size = Math.max(10, Number(document.getElementById("gridSize")?.value || 10));
+    const directionCount = Number(document.getElementById("directionCount")?.value || 8);
+    const generated = generatePuzzle(words,size,directionCount);
+
     if(!generated || !generated.grid){
         if(showMessage) toast("Could not generate this puzzle.");
         return;
     }
+
+    lastCreatePreview = generated;
+    previewAnswersVisible = true;
+
+    if(answerButton){
+        answerButton.style.display = "inline-flex";
+        answerButton.textContent = "👁️ Answers: ON";
+    }
+
     preview.innerHTML="";
+
+    const boardWrap = document.createElement("div");
+    boardWrap.style.width="100%";
+    boardWrap.style.display="flex";
+    boardWrap.style.flexDirection="column";
+    boardWrap.style.alignItems="center";
+
     const board=document.createElement("div");
     board.className="create-preview-board";
     board.style.gridTemplateColumns=`repeat(${size},1fr)`;
-    const hits=new Set();
-    (generated.placements||[]).forEach(p=>{
-        for(let i=0;i<p.word.length;i++){
-            hits.add(`${p.row+p.dr*i},${p.col+p.dc*i}`);
+
+    const answerCells = new Set();
+    const starts = new Set();
+
+    (generated.placements||[]).forEach(placement=>{
+        const cells = getPlacementCells(placement);
+        cells.forEach(pos=>answerCells.add(`${pos.row},${pos.col}`));
+        if(cells.length){
+            starts.add(`${cells[0].row},${cells[0].col}`);
         }
     });
+
     generated.grid.forEach((row,r)=>row.forEach((letter,c)=>{
         const cell=document.createElement("div");
-        cell.className="create-preview-cell"+(hits.has(`${r},${c}`)?" word-hit":"");
+        const key=`${r},${c}`;
+        const isAnswer=answerCells.has(key);
+
+        cell.className="create-preview-cell" + (isAnswer ? " word-hit" : "");
+        if(starts.has(key)) cell.classList.add("answer-start");
+        cell.dataset.answer=isAnswer ? "1" : "0";
         cell.textContent=letter;
         board.appendChild(cell);
     }));
-    preview.appendChild(board);
-    if(showMessage) toast("Puzzle preview generated!");
+
+    boardWrap.appendChild(board);
+
+    const info=document.createElement("div");
+    info.className="preview-answer-info";
+
+    const placed = generated.placements || [];
+    const missing = words.filter(word => !placed.some(p => p.word === word));
+
+    info.innerHTML = `
+        <div style="font-weight:900;color:#fff;margin-bottom:6px;">Answer locations</div>
+        ${placed.map((p,index)=>{
+            const arrow=placementDirection(p);
+            const cells=getPlacementCells(p);
+            const start=cells[0];
+            const end=cells[cells.length-1];
+            return `<div class="preview-answer-row"><span class="preview-answer-dot"></span><strong>${escapeHTML(p.word)}</strong> ${arrow} <span>R${start.row+1}:C${start.col+1} → R${end.row+1}:C${end.col+1}</span></div>`;
+        }).join("")}
+        ${missing.length ? `<div style="margin-top:7px;color:#ff8792;">Not placed: <strong>${escapeHTML(missing.join(", "))}</strong></div>` : ""}
+    `;
+
+    boardWrap.appendChild(info);
+    preview.appendChild(boardWrap);
+
+    if(showMessage){
+        toast(
+            missing.length
+                ? "Puzzle generated. Check the highlighted answers."
+                : "Puzzle generated with answer locations shown."
+        );
+    }
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
