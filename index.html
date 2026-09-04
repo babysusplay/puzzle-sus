@@ -2158,79 +2158,127 @@ body.shared-game-mode #gamePage .selection-arrow {
 </style>
 
 
-<style id="desktop-view-fix-only">
+<style id="desktop-game-fit-fix">
 /* =========================================================
-   DESKTOP VIEW ONLY
-   Existing mobile/tablet layouts are intentionally untouched.
+   DESKTOP GAME VIEW — FIT EVERYTHING IN ONE FRAME
+   Does not change puzzle logic or mobile layout.
 ========================================================= */
 
 @media screen and (min-width:1101px){
 
-    /* Give the site a comfortable desktop reading width. */
-    .container{
-        width:min(1380px, calc(100% - 56px)) !important;
-        max-width:1380px !important;
-        margin-left:auto !important;
-        margin-right:auto !important;
+    /* Keep the whole game comfortably below the header. */
+    #gamePage{
+        padding-top:18px !important;
+        padding-bottom:18px !important;
+        min-height:calc(100vh - 70px) !important;
+        box-sizing:border-box !important;
+        overflow:hidden !important;
     }
 
-    /* Keep the main home content centered and balanced. */
-    .home-content{
-        max-width:1100px !important;
-        margin-left:auto !important;
-        margin-right:auto !important;
-    }
-
-    /* Make the create modal use the available desktop space cleanly. */
-    .create-modal-window{
-        width:min(1180px, calc(100vw - 80px)) !important;
+    #gamePage .container{
+        width:min(1180px, calc(100% - 48px)) !important;
         max-width:1180px !important;
-        max-height:calc(100vh - 60px) !important;
-        margin-left:auto !important;
-        margin-right:auto !important;
+        margin:0 auto !important;
     }
 
-    .create-modal-body{
-        grid-template-columns:minmax(280px, .72fr) minmax(500px, 1.28fr) !important;
-        align-items:stretch !important;
+    /* Compact top game stats so timer + score are always visible. */
+    #gamePage .game-header,
+    #gamePage .game-top,
+    #gamePage .game-stats{
+        margin-top:0 !important;
+        margin-bottom:10px !important;
+        gap:10px !important;
     }
 
-    .create-preview{
-        min-width:0 !important;
-        min-height:560px !important;
+    #gamePage .stat{
+        padding:8px 14px !important;
     }
 
-    .create-preview .preview-grid{
-        min-height:560px !important;
+    #gamePage .stat-label{
+        font-size:11px !important;
     }
 
-    /* Saved-puzzle/history cards use the desktop width better. */
-    .quiz-grid,
-    .saved-grid,
-    .history-grid{
+    #gamePage .stat-value{
+        font-size:18px !important;
+        line-height:1.15 !important;
+    }
+
+    /* Main game: board gets most of the width, word list stays compact. */
+    #gamePage .game-layout{
         width:100% !important;
+        max-width:1180px !important;
+        grid-template-columns:minmax(0, 1fr) 210px !important;
+        gap:18px !important;
+        align-items:start !important;
     }
 
-    /* Game view: give the board more room without changing game logic. */
-    .game-layout{
-        width:100% !important;
-        max-width:1380px !important;
-        margin-left:auto !important;
-        margin-right:auto !important;
-    }
-
-    .board-panel{
+    #gamePage .board-panel{
         min-width:0 !important;
+        display:flex !important;
+        justify-content:center !important;
     }
 
-    .word-panel{
-        min-width:250px !important;
+    #gamePage .board-wrap{
+        width:min(68vh, 720px) !important;
+        height:min(68vh, 720px) !important;
+        max-width:100% !important;
+        max-height:calc(100vh - 250px) !important;
     }
 
-    /* Prevent desktop controls from becoming cramped. */
-    .home-actions,
-    .quiz-card-actions{
-        flex-wrap:wrap !important;
+    #gamePage #puzzleGrid{
+        width:100% !important;
+        height:100% !important;
+    }
+
+    /* Compact word panel: only enough room for the words. */
+    #gamePage .word-panel{
+        min-width:0 !important;
+        width:210px !important;
+        padding:14px !important;
+        max-height:calc(100vh - 190px) !important;
+        overflow:auto !important;
+    }
+
+    #gamePage .word-panel h3,
+    #gamePage .word-panel .panel-title{
+        margin-top:0 !important;
+        margin-bottom:9px !important;
+        font-size:15px !important;
+    }
+
+    #gamePage .word-list{
+        gap:5px !important;
+    }
+
+    #gamePage .word-item{
+        padding:5px 8px !important;
+        font-size:13px !important;
+        line-height:1.2 !important;
+    }
+}
+
+/* Slightly smaller desktop/laptop screens. */
+@media screen and (min-width:769px) and (max-width:1100px){
+
+    #gamePage{
+        padding-top:10px !important;
+        padding-bottom:10px !important;
+    }
+
+    #gamePage .game-layout{
+        grid-template-columns:minmax(0,1fr) 180px !important;
+        gap:12px !important;
+    }
+
+    #gamePage .board-wrap{
+        width:min(62vw, 560px) !important;
+        height:min(62vw, 560px) !important;
+        max-height:calc(100vh - 230px) !important;
+    }
+
+    #gamePage .word-panel{
+        width:180px !important;
+        padding:10px !important;
     }
 }
 </style>
