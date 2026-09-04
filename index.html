@@ -1546,10 +1546,13 @@ input:focus,textarea:focus,select:focus{
   font-weight:900;
 }
 .create-preview-cell.word-hit{
-  background:linear-gradient(135deg,#ff4b5d,#d92b40);
-  border-color:#ff6674;
-  color:#fff;
-  box-shadow:0 0 12px rgba(255,59,79,.20);
+  background:linear-gradient(135deg,#ff4b5d,#d92b40)!important;
+  border-color:#ff6674!important;
+  color:#fff!important;
+  box-shadow:0 0 0 2px rgba(255,75,93,.18),0 0 16px rgba(255,59,79,.35)!important;
+  transform:scale(.96);
+  position:relative;
+  z-index:2;
 }
 .create-preview-cell.answer-hidden{
   background:#211d37;
@@ -6344,6 +6347,21 @@ function generateCreatePreview(showMessage=true){
         if(starts.has(key)) cell.classList.add("answer-start");
         cell.dataset.answer=isAnswer ? "1" : "0";
         cell.textContent=letter;
+
+        /*
+          Use inline styling as well as the CSS class.
+          This makes answer cells visibly highlighted even if
+          another stylesheet overrides the preview-cell class.
+        */
+        if(isAnswer){
+            cell.style.background = "linear-gradient(135deg,#ff4b5d,#d92b40)";
+            cell.style.borderColor = "#ff7a86";
+            cell.style.color = "#ffffff";
+            cell.style.boxShadow = "0 0 0 2px rgba(255,75,93,.18), 0 0 16px rgba(255,75,93,.35)";
+            cell.style.transform = "scale(.96)";
+            cell.style.zIndex = "2";
+        }
+
         board.appendChild(cell);
     }));
 
