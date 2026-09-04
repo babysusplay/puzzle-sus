@@ -5584,6 +5584,132 @@ document.addEventListener(
 );
 
 
+
+/* =========================================================
+   SHORT SHARE LINKS + DIRECT LINK START
+   Added without removing the working puzzle system.
+========================================================= */
+
+function shortBase64(bytes){
+    let binary = "";
+    const chunk = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){
+        binary += String.fromCharCode(...bytes.subarray(i,Math.min(i+chunk,bytes.length)));
+    }
+    return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+}
+
+function shortBase64Decode(value){
+    value=String(value||"").replace(/-/g,"+").replace(/_/g,"/");
+    while(value.length%4) value+="=";
+    const binary=atob(value);
+    const bytes=new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+    return bytes;
+}
+
+function encodeShortPuzzle(puzzle){
+    const words=(puzzle.words||[]).map(w=>String(w).toUpperCase().replace(/[^A-Z]/g,"")).filter(Boolean).slice(0,25);
+    const nameBytes=new TextEncoder().encode(String(puzzle.name||"Puzzle")).slice(0,65535);
+    const bytes=[80,83,49,Math.max(1,Math.min(255,Number(puzzle.size)||10)),words.length,(nameBytes.length>>8)&255,nameBytes.length&255];
+    for(const b of nameBytes) bytes.push(b);
+    for(const word of words){
+        const clean=word.slice(0,31);
+        bytes.push(clean.length);
+        let buffer=0,bits=0;
+        for(const ch of clean){
+            buffer=(buffer<<5)|(ch.charCodeAt(0)-65);
+            bits+=5;
+            while(bits>=8){
+                bits-=8;
+                bytes.push((buffer>>bits)&255);
+                buffer=bits ? buffer&((1<<bits)-1) : 0;
+            }
+        }
+        if(bits>0) bytes.push((buffer<<(8-bits))&255);
+    }
+    return shortBase64(new Uint8Array(bytes));
+}
+
+function decodeShortPuzzle(encoded){
+    try{
+        const bytes=shortBase64Decode(encoded);
+        let index=0;
+        if(bytes[index++]!==80||bytes[index++]!==83||bytes[index++]!==49) return null;
+        const size=Number(bytes[index++])||10;
+        const wordCount=Number(bytes[index++]);
+        const nameLength=(Number(bytes[index++])<<8)|Number(bytes[index++]);
+        if(wordCount<1||wordCount>25||index+nameLength>bytes.length) return null;
+        const name=new TextDecoder().decode(bytes.slice(index,index+nameLength));
+        index+=nameLength;
+        const words=[];
+        for(let w=0;w<wordCount;w++){
+            const length=Number(bytes[index++]);
+            if(!length||length>31) return null;
+            let word="",buffer=0,bits=0;
+            const read5=()=>{
+                while(bits<5){
+                    if(index>=bytes.length) return null;
+                    buffer=(buffer<<8)|bytes[index++];
+                    bits+=8;
+                }
+                bits-=5;
+                const value=(buffer>>bits)&31;
+                buffer=bits ? buffer&((1<<bits)-1) : 0;
+                return value;
+            };
+            for(let c=0;c<length;c++){
+                const value=read5();
+                if(value===null||value>25) return null;
+                word+=String.fromCharCode(65+value);
+            }
+            words.push(word);
+        }
+        if(!name||!words.length) return null;
+        return {id:"shared-"+uid(),name,words,size,seed:Math.random(),createdAt:Date.now(),updatedAt:Date.now(),shared:true};
+    }catch(e){return null;}
+}
+
+function getSharedPuzzleFromURL(){
+    try{
+        const code=new URLSearchParams(window.location.search).get("p");
+        if(code){
+            const puzzle=decodeShortPuzzle(code);
+            if(puzzle) return puzzle;
+        }
+    }catch(e){}
+    try{
+        const hash=window.location.hash||"";
+        if(hash.startsWith("#play=")){
+            const encoded=hash.substring(6);
+            const oldPuzzle=decodePuzzle(encoded);
+            if(oldPuzzle) return oldPuzzle;
+            const shortPuzzle=decodeShortPuzzle(encoded);
+            if(shortPuzzle) return shortPuzzle;
+        }
+    }catch(e){}
+    return null;
+}
+
+function sharePuzzle(id){
+    const puzzle=puzzles.find(p=>p.id===id);
+    if(!puzzle) return;
+    const code=encodeShortPuzzle(puzzle);
+    const url=window.location.origin+window.location.pathname+"?p="+code;
+    if(navigator.clipboard&&window.isSecureContext){
+        navigator.clipboard.writeText(url).then(()=>toast("Short puzzle link copied! 🔗")).catch(()=>showShareFallback(url));
+    }else{
+        showShareFallback(url);
+    }
+}
+
+function checkSharedPuzzle(){
+    const puzzle=getSharedPuzzleFromURL();
+    if(!puzzle) return;
+    try{history.replaceState(null,"",window.location.pathname);}catch(e){}
+    startGame(puzzle);
+}
+
 /* =========================================================
    STARTUP
 ========================================================= */
