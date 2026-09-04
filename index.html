@@ -1889,6 +1889,63 @@ body.modal-open{
   }
 }
 
+
+/* =========================================================
+   SHARED GAME MODE
+========================================================= */
+
+body.shared-game-mode{
+    overflow-x:hidden;
+}
+
+body.shared-game-mode .header{
+    display:none !important;
+}
+
+body.shared-game-mode .page:not(#gamePage){
+    display:none !important;
+}
+
+body.shared-game-mode #gamePage{
+    display:block !important;
+    min-height:100vh;
+    padding-top:18px;
+}
+
+body.shared-game-mode .game-page{
+    margin-top:0 !important;
+}
+
+body.shared-game-mode .container{
+    padding-top:0 !important;
+}
+
+/* Small, clear red selection arrow. No blue/purple selection trail. */
+.cell.selected{
+    background:inherit !important;
+    box-shadow:inset 0 0 0 2px rgba(239,68,68,.22) !important;
+    transform:none !important;
+}
+
+.selection-line{
+    stroke:#ef4444 !important;
+    stroke-width:3.5 !important;
+    stroke-linecap:round;
+    opacity:.95;
+    filter:drop-shadow(0 0 4px rgba(239,68,68,.38));
+}
+
+.selection-arrow{
+    fill:#ef4444 !important;
+    filter:drop-shadow(0 0 3px rgba(239,68,68,.35));
+}
+
+@media(max-width:600px){
+    .selection-line{
+        stroke-width:3 !important;
+    }
+}
+
 </style>
 </head>
 
@@ -2230,15 +2287,15 @@ body.modal-open{
 
                             <marker
                                 id="arrowHead"
-                                markerWidth="9"
-                                markerHeight="9"
-                                refX="7"
-                                refY="4.5"
+                                markerWidth="6"
+                                markerHeight="6"
+                                refX="5"
+                                refY="3"
                                 orient="auto"
                             >
                                 <polygon
                                     class="selection-arrow"
-                                    points="0 0, 9 4.5, 0 9"
+                                    points="0 0, 6 3, 0 6"
                                 />
                             </marker>
 
@@ -4065,8 +4122,8 @@ function getLineCells(start,end){
 
 
     /*
-      Must be horizontal,
-      vertical or diagonal.
+      Allow all 8 compass directions:
+      N, NE, E, SE, S, SW, W, NW.
     */
 
     const straight =
@@ -5706,8 +5763,41 @@ function sharePuzzle(id){
 function checkSharedPuzzle(){
     const puzzle=getSharedPuzzleFromURL();
     if(!puzzle) return;
-    try{history.replaceState(null,"",window.location.pathname);}catch(e){}
+
+    document.body.classList.add("shared-game-mode");
+
+    /*
+      Shared links must open directly on the game.
+      Hide the normal site UI and force the viewport to the top.
+    */
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
+
+    const gamePage = document.getElementById("gamePage");
+    if(gamePage){
+        gamePage.classList.add("active");
+    }
+
+    try{
+        if("scrollRestoration" in history){
+            history.scrollRestoration = "manual";
+        }
+
+        history.replaceState(
+            null,
+            "",
+            window.location.pathname
+        );
+    }catch(e){}
+
+    window.scrollTo(0,0);
+
     startGame(puzzle);
+
+    requestAnimationFrame(() => {
+        window.scrollTo(0,0);
+    });
 }
 
 /* =========================================================
