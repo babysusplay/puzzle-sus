@@ -2283,6 +2283,175 @@ body.shared-game-mode #gamePage .selection-arrow {
 }
 </style>
 
+
+<style id="desktop-10x10-one-frame-fix">
+/* =========================================================
+   DESKTOP SHARED GAME — TRUE 10x10 ONE-FRAME FIT
+   Only changes desktop shared-game presentation.
+========================================================= */
+
+@media screen and (min-width:1101px){
+
+  body.shared-game-mode #gamePage{
+    padding-top:20px !important;
+    padding-bottom:14px !important;
+    min-height:100vh !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+
+  body.shared-game-mode #gamePage > .container{
+    width:min(1120px, calc(100vw - 50px)) !important;
+    max-width:1120px !important;
+    margin:0 auto !important;
+  }
+
+  /* Keep timer + score clearly visible, but compact. */
+  body.shared-game-mode #gamePage .game-top{
+    min-height:52px !important;
+    margin:8px 0 12px !important;
+    align-items:center !important;
+  }
+
+  body.shared-game-mode #gamePage .stats{
+    gap:8px !important;
+  }
+
+  body.shared-game-mode #gamePage .stat{
+    min-width:96px !important;
+    padding:7px 11px !important;
+  }
+
+  body.shared-game-mode #gamePage .stat-label{
+    font-size:9px !important;
+  }
+
+  body.shared-game-mode #gamePage .stat-value{
+    font-size:17px !important;
+  }
+
+  /* 10x10 board: fixed compact size so ALL 10 rows fit. */
+  body.shared-game-mode #gamePage .game-layout{
+    grid-template-columns:minmax(0, 1fr) 220px !important;
+    gap:14px !important;
+    align-items:start !important;
+  }
+
+  body.shared-game-mode #gamePage .board-panel{
+    padding:10px !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+  }
+
+  body.shared-game-mode #gamePage .board-wrap{
+    width:min(570px, 100%) !important;
+    max-width:570px !important;
+    margin:0 auto !important;
+  }
+
+  body.shared-game-mode #gamePage .board{
+    width:100% !important;
+    box-sizing:border-box !important;
+    gap:4px !important;
+    padding:5px !important;
+  }
+
+  body.shared-game-mode #gamePage .cell{
+    min-width:0 !important;
+    border-radius:6px !important;
+    font-size:clamp(13px, 1.35vw, 19px) !important;
+  }
+
+  /* Word box stays compact and fully visible. */
+  body.shared-game-mode #gamePage .side-panel{
+    width:220px !important;
+    box-sizing:border-box !important;
+    padding:12px !important;
+  }
+
+  body.shared-game-mode #gamePage .side-heading{
+    font-size:16px !important;
+    margin-bottom:8px !important;
+  }
+
+  body.shared-game-mode #gamePage .word-list{
+    max-height:none !important;
+    overflow:visible !important;
+    gap:4px !important;
+  }
+
+  body.shared-game-mode #gamePage .word{
+    padding:5px 7px !important;
+    font-size:10px !important;
+    line-height:1.05 !important;
+  }
+
+  body.shared-game-mode #gamePage .progress-wrap{
+    margin-top:8px !important;
+  }
+
+  body.shared-game-mode #gamePage .exit-btn{
+    margin-top:8px !important;
+    padding:8px 9px !important;
+    font-size:10px !important;
+  }
+}
+
+/* Smaller laptop desktop: shrink board a little further. */
+@media screen and (min-width:851px) and (max-width:1100px){
+
+  body.shared-game-mode #gamePage{
+    padding-top:10px !important;
+    padding-bottom:10px !important;
+    overflow:hidden !important;
+  }
+
+  body.shared-game-mode #gamePage .game-top{
+    margin:4px 0 8px !important;
+    min-height:44px !important;
+  }
+
+  body.shared-game-mode #gamePage .stat{
+    min-width:82px !important;
+    padding:5px 8px !important;
+  }
+
+  body.shared-game-mode #gamePage .stat-value{
+    font-size:14px !important;
+  }
+
+  body.shared-game-mode #gamePage .game-layout{
+    grid-template-columns:minmax(0,1fr) 190px !important;
+    gap:10px !important;
+  }
+
+  body.shared-game-mode #gamePage .board-panel{
+    padding:7px !important;
+  }
+
+  body.shared-game-mode #gamePage .board-wrap{
+    width:min(500px,100%) !important;
+    max-width:500px !important;
+  }
+
+  body.shared-game-mode #gamePage .board{
+    gap:3px !important;
+    padding:4px !important;
+  }
+
+  body.shared-game-mode #gamePage .side-panel{
+    width:190px !important;
+    padding:9px !important;
+  }
+
+  body.shared-game-mode #gamePage .word{
+    padding:4px 6px !important;
+    font-size:9px !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
