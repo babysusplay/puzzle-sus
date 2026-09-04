@@ -1950,6 +1950,13 @@ body.modal-open{
                 🎮 Join Puzzle
             </button>
 
+            <button
+                class="btn btn-secondary big-btn"
+                onclick="showPage('savedPage')"
+            >
+                💾 Saved Puzzles
+            </button>
+
         </div>
 
     </div>
@@ -2044,6 +2051,15 @@ body.modal-open{
 
         <div class="create-actions">
           <button class="btn btn-primary" onclick="generateCreatePreview()">🧩 Generate Puzzle</button>
+
+          <button
+              id="savePuzzleBtn"
+              class="btn btn-primary"
+              onclick="savePuzzle()"
+              style="display:none;"
+          >
+              💾 Save Puzzle
+          </button>
           <button class="btn btn-secondary" onclick="clearCreate()">Clear</button>
         </div>
 
@@ -5877,6 +5893,50 @@ document.addEventListener("click", function(e){
     </div>
   </div>
 </div>
+
+
+<script>
+/* =========================================================
+   SAVE BUTTON — SHOW AFTER PUZZLE GENERATION
+========================================================= */
+(function(){
+    const originalGenerateCreatePreview = window.generateCreatePreview;
+
+    if(typeof originalGenerateCreatePreview === "function"){
+        window.generateCreatePreview = function(){
+            const result = originalGenerateCreatePreview.apply(this, arguments);
+
+            const preview = document.getElementById("createPreviewGrid");
+            const saveButton = document.getElementById("savePuzzleBtn");
+
+            if(saveButton && preview && preview.querySelector(".create-preview-board")){
+                saveButton.style.display = "inline-flex";
+            }
+
+            return result;
+        };
+    }
+})();
+</script>
+
+
+<script>
+/* Hide Save button when opening a fresh Create Puzzle window. */
+(function(){
+    const originalOpenCreate = window.openCreate;
+
+    if(typeof originalOpenCreate === "function"){
+        window.openCreate = function(){
+            const result = originalOpenCreate.apply(this, arguments);
+            const saveButton = document.getElementById("savePuzzleBtn");
+            if(saveButton){
+                saveButton.style.display = "none";
+            }
+            return result;
+        };
+    }
+})();
+</script>
 
 </body>
 </html>
