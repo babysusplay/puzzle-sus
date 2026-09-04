@@ -1947,6 +1947,178 @@ body.shared-game-mode .container{
 }
 
 </style>
+
+<style id="shared-game-final-overrides">
+/* FINAL SHARED-GAME VIEW: game only */
+body.shared-game-mode {
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+  background:#0d0b16 !important;
+}
+body.shared-game-mode .header,
+body.shared-game-mode #homePage,
+body.shared-game-mode #createPage,
+body.shared-game-mode #savedPage,
+body.shared-game-mode #historyPage,
+body.shared-game-mode .page:not(#gamePage) {
+  display:none !important;
+  visibility:hidden !important;
+  height:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+}
+body.shared-game-mode #gamePage {
+  display:block !important;
+  visibility:visible !important;
+  min-height:100vh !important;
+  padding:12px 0 28px !important;
+  margin:0 !important;
+}
+body.shared-game-mode #gamePage > .container {
+  max-width:1200px !important;
+  padding-top:0 !important;
+}
+body.shared-game-mode #gamePage .game-name,
+body.shared-game-mode #gamePage .game-status {
+  display:none !important;
+}
+body.shared-game-mode #gamePage .game-top {
+  display:flex !important;
+  justify-content:flex-end !important;
+  align-items:center !important;
+  margin:0 0 12px !important;
+  min-height:48px !important;
+}
+body.shared-game-mode #gamePage .stats {
+  display:flex !important;
+  gap:7px !important;
+}
+body.shared-game-mode #gamePage .stat {
+  min-width:92px !important;
+  padding:7px 10px !important;
+  border-radius:11px !important;
+}
+body.shared-game-mode #gamePage .stat:nth-child(3) {
+  display:none !important;
+}
+body.shared-game-mode #gamePage .stat-label {
+  font-size:9px !important;
+}
+body.shared-game-mode #gamePage .stat-value {
+  font-size:16px !important;
+  margin-top:1px !important;
+}
+body.shared-game-mode #gamePage .game-layout {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 220px !important;
+  gap:12px !important;
+  align-items:start !important;
+}
+body.shared-game-mode #gamePage .board-panel {
+  padding:10px !important;
+  border-radius:16px !important;
+}
+body.shared-game-mode #gamePage .board-wrap {
+  width:min(760px,100%) !important;
+}
+body.shared-game-mode #gamePage .board {
+  gap:5px !important;
+  padding:5px !important;
+}
+body.shared-game-mode #gamePage .cell {
+  border-radius:7px !important;
+}
+body.shared-game-mode #gamePage .side-panel {
+  padding:13px !important;
+  border-radius:15px !important;
+  max-height:none !important;
+}
+body.shared-game-mode #gamePage .side-title {
+  font-size:10px !important;
+  margin-bottom:5px !important;
+}
+body.shared-game-mode #gamePage .side-heading {
+  font-size:17px !important;
+  margin-bottom:9px !important;
+}
+body.shared-game-mode #gamePage .word-list {
+  display:flex !important;
+  flex-direction:column !important;
+  gap:5px !important;
+  max-height:55vh !important;
+  overflow:auto !important;
+  padding-right:2px !important;
+}
+body.shared-game-mode #gamePage .word {
+  padding:6px 8px !important;
+  border-radius:8px !important;
+  font-size:11px !important;
+  line-height:1.1 !important;
+}
+body.shared-game-mode #gamePage .progress-wrap {
+  margin-top:10px !important;
+}
+body.shared-game-mode #gamePage .exit-btn {
+  width:100% !important;
+  margin-top:10px !important;
+  padding:9px 10px !important;
+  font-size:11px !important;
+}
+body.shared-game-mode #gamePage .selection-line {
+  stroke-width:3.5 !important;
+}
+body.shared-game-mode #gamePage .selection-arrow {
+  transform:scale(.75) !important;
+  transform-origin:center !important;
+}
+@media(max-width:800px){
+  body.shared-game-mode #gamePage { padding:7px 0 18px !important; }
+  body.shared-game-mode #gamePage > .container { padding-left:8px !important; padding-right:8px !important; }
+  body.shared-game-mode #gamePage .game-top {
+    min-height:38px !important;
+    margin-bottom:7px !important;
+  }
+  body.shared-game-mode #gamePage .stat {
+    min-width:78px !important;
+    padding:5px 8px !important;
+  }
+  body.shared-game-mode #gamePage .stat-value { font-size:14px !important; }
+  body.shared-game-mode #gamePage .game-layout {
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+  body.shared-game-mode #gamePage .board-panel {
+    order:1 !important;
+    padding:7px !important;
+  }
+  body.shared-game-mode #gamePage .side-panel {
+    order:2 !important;
+    padding:9px 10px !important;
+  }
+  body.shared-game-mode #gamePage .side-title { display:none !important; }
+  body.shared-game-mode #gamePage .side-heading {
+    font-size:14px !important;
+    margin-bottom:6px !important;
+  }
+  body.shared-game-mode #gamePage .word-list {
+    flex-direction:row !important;
+    flex-wrap:wrap !important;
+    max-height:100px !important;
+    overflow:auto !important;
+  }
+  body.shared-game-mode #gamePage .word {
+    padding:5px 7px !important;
+    font-size:10px !important;
+  }
+  body.shared-game-mode #gamePage .progress-wrap,
+  body.shared-game-mode #gamePage .exit-btn {
+    display:none !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -5772,11 +5944,13 @@ function checkSharedPuzzle(){
     */
     document.querySelectorAll(".page").forEach(page => {
         page.classList.remove("active");
+        page.style.display = "none";
     });
 
     const gamePage = document.getElementById("gamePage");
     if(gamePage){
         gamePage.classList.add("active");
+        gamePage.style.display = "block";
     }
 
     try{
