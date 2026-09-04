@@ -2117,6 +2117,11 @@ body.shared-game-mode #gamePage .selection-arrow {
     display:none !important;
   }
 }
+
+.direction-options{display:flex;gap:10px;flex-wrap:wrap}
+.direction-option{border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05);color:#c8c3d9;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer;transition:.18s}
+.direction-option:hover{transform:translateY(-1px);border-color:rgba(139,92,246,.65)}
+.direction-option.active{background:rgba(124,58,237,.22);border-color:#8b5cf6;color:#fff;box-shadow:0 0 0 1px rgba(139,92,246,.18) inset}
 </style>
 
 </head>
@@ -2275,6 +2280,21 @@ body.shared-game-mode #gamePage .selection-arrow {
             <option value="10">10 × 10</option>
             <option value="12">12 × 12</option>
             <option value="15">15 × 15</option>
+          </select>
+        </div>
+
+        <div class="create-field">
+          <label>DIRECTIONS</label>
+          <div class="direction-options">
+            <button type="button" class="direction-option" data-directions="4" onclick="setDirectionCount(4)">4 Directions</button>
+            <button type="button" class="direction-option" data-directions="6" onclick="setDirectionCount(6)">6 Directions</button>
+            <button type="button" class="direction-option active" data-directions="8" onclick="setDirectionCount(8)">8 Directions</button>
+          </div>
+          <div class="create-tip">4 = horizontal/vertical • 6 = adds one diagonal axis • 8 = all 8 directions.</div>
+          <select id="directionCount" class="grid-hidden-select" aria-hidden="true">
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
           </select>
         </div>
 
@@ -2881,8 +2901,10 @@ function openCreate(){
         "gridSize"
     ).value = "10";
 
+    setDirectionCount(8);
     setGridSize(10);
     renderWordChips();
+    setDirectionCount(Number(document.getElementById("directionCount")?.value || 8));
     renderCreateSavedPreview();
 
     const modal = document.getElementById("createPage");
@@ -2929,6 +2951,8 @@ function savePuzzle(){
             .getElementById("gridSize")
             .value
         );
+
+    const directionCount = Number(document.getElementById("directionCount")?.value || 8);
 
 
     if(!name){
@@ -3007,6 +3031,7 @@ function savePuzzle(){
         puzzle.name = name;
         puzzle.words = words;
         puzzle.size = size;
+        puzzle.directionCount = [4,6,8].includes(directionCount) ? directionCount : 8;
 
         puzzle.updatedAt = Date.now();
 
@@ -3029,6 +3054,7 @@ function savePuzzle(){
             words,
 
             size,
+            directionCount: [4,6,8].includes(directionCount) ? directionCount : 8,
 
             seed:Math.random(),
 
@@ -3102,6 +3128,8 @@ function editPuzzle(id){
         "gridSize"
     ).value =
         String(puzzle.size);
+
+    setDirectionCount(puzzle.directionCount || 8);
 
 
     const modal = document.getElementById("createPage");
@@ -3373,7 +3401,7 @@ function placeWord(
 }
 
 
-function generatePuzzle(words,size){
+function generatePuzzle(words,size,directionCount=8){
 
     /*
       Try multiple times to make sure all words fit.
@@ -3404,11 +3432,8 @@ function generatePuzzle(words,size){
 
         for(const word of shuffled){
 
-            const directions =
-                [...DIRECTIONS]
-                .sort(
-                    () => Math.random()-.5
-                );
+            const count = [4,6,8].includes(Number(directionCount)) ? Number(directionCount) : 8;
+            const directions = [...DIRECTIONS.slice(0,count)].sort(() => Math.random()-.5);
 
 
             let done = false;
@@ -3622,7 +3647,8 @@ function startGame(puzzle){
     const generated =
         generatePuzzle(
             puzzle.words,
-            puzzle.size
+            puzzle.size,
+            puzzle.directionCount || 8
         );
 
 
@@ -5840,7 +5866,8 @@ function shortBase64Decode(value){
 function encodeShortPuzzle(puzzle){
     const words=(puzzle.words||[]).map(w=>String(w).toUpperCase().replace(/[^A-Z]/g,"")).filter(Boolean).slice(0,25);
     const nameBytes=new TextEncoder().encode(String(puzzle.name||"Puzzle")).slice(0,65535);
-    const bytes=[80,83,49,Math.max(1,Math.min(255,Number(puzzle.size)||10)),words.length,(nameBytes.length>>8)&255,nameBytes.length&255];
+    const directionCount=[4,6,8].includes(Number(puzzle.directionCount)) ? Number(puzzle.directionCount) : 8;
+    const bytes=[80,83,50,Math.max(1,Math.min(255,Number(puzzle.size)||10)),directionCount,words.length,(nameBytes.length>>8)&255,nameBytes.length&255];
     for(const b of nameBytes) bytes.push(b);
     for(const word of words){
         const clean=word.slice(0,31);
@@ -5864,8 +5891,11 @@ function decodeShortPuzzle(encoded){
     try{
         const bytes=shortBase64Decode(encoded);
         let index=0;
-        if(bytes[index++]!==80||bytes[index++]!==83||bytes[index++]!==49) return null;
+        if(bytes[index++]!==80||bytes[index++]!==83) return null;
+        const version=bytes[index++];
+        if(version!==49 && version!==50) return null;
         const size=Number(bytes[index++])||10;
+        const directionCount=version===50 ? Number(bytes[index++]) : 8;
         const wordCount=Number(bytes[index++]);
         const nameLength=(Number(bytes[index++])<<8)|Number(bytes[index++]);
         if(wordCount<1||wordCount>25||index+nameLength>bytes.length) return null;
@@ -5895,7 +5925,7 @@ function decodeShortPuzzle(encoded){
             words.push(word);
         }
         if(!name||!words.length) return null;
-        return {id:"shared-"+uid(),name,words,size,seed:Math.random(),createdAt:Date.now(),updatedAt:Date.now(),shared:true};
+        return {id:"shared-"+uid(),name,words,size,directionCount:[4,6,8].includes(directionCount)?directionCount:8,seed:Math.random(),createdAt:Date.now(),updatedAt:Date.now(),shared:true};
     }catch(e){return null;}
 }
 
@@ -6111,6 +6141,7 @@ function clearCreate(){
     const select=document.getElementById("gridSize");
     if(select) select.value="10";
 
+    setDirectionCount(8);
     setGridSize(10);
     renderWordChips();
 
@@ -6130,6 +6161,16 @@ function updateCreateWordCount(){
 }
 
 
+function setDirectionCount(count){
+    count=Number(count);
+    if(![4,6,8].includes(count)) count=8;
+    const select=document.getElementById("directionCount");
+    if(select) select.value=String(count);
+    document.querySelectorAll(".direction-option").forEach(btn=>{
+        btn.classList.toggle("active",Number(btn.dataset.directions)===count);
+    });
+}
+
 function generateCreatePreview(showMessage=true){
     updateCreateWordCount();
     const words=getCreateWords();
@@ -6141,7 +6182,8 @@ function generateCreatePreview(showMessage=true){
         return;
     }
     const size=Math.max(10,Number(document.getElementById("gridSize")?.value||10));
-    const generated=generatePuzzle(words,size);
+    const directionCount=Number(document.getElementById("directionCount")?.value||8);
+    const generated=generatePuzzle(words,size,directionCount);
     if(!generated || !generated.grid){
         if(showMessage) toast("Could not generate this puzzle.");
         return;
@@ -6183,7 +6225,7 @@ function renderCreateSavedPreview(){
       <div class="mini-saved">
         <div style="min-width:0">
           <div class="mini-saved-title">${escapeHTML(p.name)}</div>
-          <div class="mini-saved-meta">${p.words.length} words • ${p.size}×${p.size}</div>
+          <div class="mini-saved-meta">${p.words.length} words • ${p.size}×${p.size} • ${p.directionCount || 8} directions</div>
         </div>
         <div class="mini-saved-actions">
           <button class="btn btn-secondary btn-small" onclick="editPuzzle('${p.id}')">✏️</button>
