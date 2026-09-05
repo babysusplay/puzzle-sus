@@ -1,0 +1,32 @@
+name: Inject Sus Games SSO
+on:
+  push:
+    paths:
+      - sus-games-sso.js
+permissions:
+  contents: write
+jobs:
+  inject:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add SSO script tag
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./sus-games-sso.js"></script>'
+          if tag not in s:
+              s=s.replace('</body>', tag+'\n</body>', 1)
+              p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit injection
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Load Sus Games shared login bridge [skip ci]'
+          git push
