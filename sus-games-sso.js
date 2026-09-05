@@ -5,7 +5,7 @@
   const SUPABASE_URL='https://wnjsajfahsqunfesmetu.supabase.co';
   const SUPABASE_KEY='sb_publishable_S_ePD9oEegH0R0XR8LGvjQ_sMs9OZSm';
   const HUB='https://babysusplay.github.io/sus-games/';
-  const SCORE_KEY='sus_games_recorded_puzzle_scores_v1';
+  const SCORE_KEY='sus_games_recorded_puzzle_runs_v1';
 
   const load=()=>new Promise((resolve,reject)=>{
     if(window.supabase){resolve();return;}
@@ -20,18 +20,18 @@
     try{return new Set(JSON.parse(localStorage.getItem(SCORE_KEY)||'[]'));}
     catch{return new Set();}
   }
-
   function writeRecorded(set){
     try{localStorage.setItem(SCORE_KEY,JSON.stringify([...set].slice(-200)));}catch{}
   }
 
-  async function recordPuzzleScore(sb, userId, puzzle, score, elapsed){
-    if(!sb || !userId || !puzzle || !Number.isFinite(Number(score))) return;
+  let activePuzzle=null;
+  let activeRunId=null;
 
-    /* One result per completed puzzle/game instance. */
-    const completionKey=[userId,puzzle.id,Date.now()].join(':');
+  async function recordPuzzleScore(sb,userId,puzzle,score,elapsed,runId){
+    if(!sb||!userId||!puzzle||!runId||!Number.isFinite(Number(score)))return;
+
     const recorded=readRecorded();
-    if(recorded.has(completionKey)) return;
+    if(recorded.has(runId))return;
 
     const payload={
       user_id:userId,
@@ -43,16 +43,11 @@
 
     try{
       const {error}=await sb.from('game_scores').insert(payload);
-      if(error){
-        console.warn('[Sus Games score]',error);
-        return;
-      }
-      recorded.add(completionKey);
+      if(error){console.warn('[Sus Games score]',error);return;}
+      recorded.add(runId);
       writeRecorded(recorded);
       window.dispatchEvent(new CustomEvent('sus-game-score-recorded',{detail:{gameType:'puzzle',gameId:puzzle.id,score:Number(score),elapsed:Number(elapsed)||0}}));
-    }catch(e){
-      console.warn('[Sus Games score]',e);
-    }
+    }catch(e){console.warn('[Sus Games score]',e)}
   }
 
   const boot=async()=>{
@@ -81,17 +76,12 @@
       const name=profile?.display_name||session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'Player';
       window.susGamesCurrentUser={...session.user,profile};
       window.susGamesCurrentName=name;
-
       localStorage.setItem('puzzle_sus_shared_user',JSON.stringify({id:session.user.id,name,avatar:profile?.avatar_url||null}));
       window.getLocalAuth=()=>({username:name,shared:true,user_id:session.user.id});
       if(typeof window.updateAuthArea==='function')window.updateAuthArea();
 
       const logo=document.querySelector('.logo');
-      if(logo){
-        logo.style.cursor='pointer';
-        logo.title='Back to Sus Games';
-        logo.onclick=()=>location.href=HUB;
-      }
+      if(logo){logo.style.cursor='pointer';logo.title='Back to Sus Games';logo.onclick=()=>location.href=HUB;}
 
       if(!document.getElementById('susHubBack')){
         const back=document.createElement('button');
@@ -103,20 +93,26 @@
         document.body.appendChild(back);
       }
 
-      /*
-        The original Puzzle game owns completeGame(). Wrap it instead of
-        replacing the game logic. This keeps scoring/timer/history intact
-        and only adds the shared game_scores write after a real completion.
-      */
-      const originalComplete=window.completeGame;
-      if(typeof originalComplete==='function' && !window.__susPuzzleCompleteWrapped){
-        window.__susPuzzleCompleteWrapped=true;
-        window.completeGame=function(){
-          originalComplete.apply(this,arguments);
-          const active=window.game;
-          if(active && active.puzzle){
-            recordPuzzleScore(sb,session.user.id,active.puzzle,active.score,active.elapsed);
-          }
+      /* Capture each real game run without replacing Puzzle's game logic. */
+      const originalStart=window.startGame;
+      if(typeof originalStart==='function'&&!window.__susPuzzleStartWrapped){
+        window.__susPuzzleStartWrapped=true;
+        window.startGame=function(puzzle){
+          activePuzzle=puzzle||null;
+          activeRunId=(crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random());
+          return originalStart.apply(this,arguments);
+        };
+      }
+
+      /* completeGame() schedules openResultModal(score,time,bonus), so this
+         hook receives the final score after the completion bonus is applied. */
+      const originalResult=window.openResultModal;
+      if(typeof originalResult==='function'&&!window.__susPuzzleResultWrapped){
+        window.__susPuzzleResultWrapped=true;
+        window.openResultModal=function(score,time,bonus){
+          const result=originalResult.apply(this,arguments);
+          recordPuzzleScore(sb,session.user.id,activePuzzle,score,time,activeRunId);
+          return result;
         };
       }
 
