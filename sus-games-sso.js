@@ -21,9 +21,10 @@
       localStorage.setItem('puzzle_sus_shared_user',JSON.stringify({id:session.user.id,name,avatar:profile?.avatar_url||null}));
       window.getLocalAuth=()=>({username:name,shared:true,user_id:session.user.id});
       if(typeof window.updateAuthArea==='function')window.updateAuthArea();
-      const back=document.createElement('button');back.id='susHubBack';back.textContent='Sus Games';back.title='Back to Sus Games';back.style.cssText='position:fixed;right:18px;bottom:18px;z-index:6000;border:1px solid rgba(139,92,246,.45);background:#211d37;color:#fff;border-radius:11px;padding:9px 13px;font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.3)';back.onclick=()=>location.href=HUB;document.body.appendChild(back);
+      const logo=document.querySelector('.logo');
+      if(logo){logo.style.cursor='pointer';logo.title='Back to Sus Games';logo.onclick=()=>location.href=HUB;}
+      if(!document.getElementById('susHubBack')){const back=document.createElement('button');back.id='susHubBack';back.textContent='Sus Games';back.title='Back to Sus Games';back.style.cssText='position:fixed;right:18px;bottom:18px;z-index:6000;border:1px solid rgba(139,92,246,.45);background:#211d37;color:#fff;border-radius:11px;padding:9px 13px;font-weight:800;cursor:pointer;box-shadow:0 8px 25px rgba(0,0,0,.3)';back.onclick=()=>location.href=HUB;document.body.appendChild(back);}
     }catch(e){console.warn('[Sus Games SSO]',e)}
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-/* shared bridge v2 */
