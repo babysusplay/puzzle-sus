@@ -7677,6 +7677,89 @@ document.addEventListener("click", function(e){
 
 <script src="./sus-games-sso.js"></script>
 <script src="./puzzle-sso-fix.js"></script>
+
+<script>
+/* Puzzle Sus — shared Hub session handoff reliability fix. */
+(() => {
+  'use strict';
+
+  let attempts = 0;
+  const MAX_ATTEMPTS = 100;
+
+  async function syncSharedSession() {
+    attempts++;
+
+    const sb = window.susGamesSupabase;
+    if (!sb?.auth) {
+      if (attempts < MAX_ATTEMPTS) setTimeout(syncSharedSession, 100);
+      return;
+    }
+
+    try {
+      /* If the Hub handed Puzzle a session in the URL, consume it first. */
+      const hash = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
+      const accessToken = hash.get('access_token');
+      const refreshToken = hash.get('refresh_token');
+
+      if (accessToken && refreshToken) {
+        const { error } = await sb.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+
+        if (!error) {
+          history.replaceState(null, '', location.pathname + location.search);
+        }
+      }
+
+      /* Read the persisted shared Sus Games session. */
+      const { data } = await sb.auth.getSession();
+      const user = data?.session?.user || null;
+
+      if (typeof psAuthUser !== 'undefined') psAuthUser = user;
+      if (typeof psAuthReady !== 'undefined') psAuthReady = Promise.resolve(user);
+
+      if (user) {
+        if (typeof updateAuthArea === 'function') updateAuthArea();
+        if (typeof window.susGamesCurrentUser === 'undefined') {
+          window.susGamesCurrentUser = user;
+        }
+        return;
+      }
+
+      /* A Hub handoff can arrive just after the first client check. */
+      if (attempts < MAX_ATTEMPTS) setTimeout(syncSharedSession, 150);
+    } catch (e) {
+      console.warn('[Puzzle Sus shared login]', e);
+      if (attempts < MAX_ATTEMPTS) setTimeout(syncSharedSession, 200);
+    }
+  }
+
+  function start() {
+    syncSharedSession();
+
+    const sb = window.susGamesSupabase;
+    if (sb?.auth && !window.__puzzleHubSessionListener) {
+      window.__puzzleHubSessionListener = true;
+      sb.auth.onAuthStateChange((_event, session) => {
+        const user = session?.user || null;
+        try {
+          if (typeof psAuthUser !== 'undefined') psAuthUser = user;
+          if (typeof psAuthReady !== 'undefined') psAuthReady = Promise.resolve(user);
+          if (typeof updateAuthArea === 'function') updateAuthArea();
+        } catch (_) {}
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>
 <script>
