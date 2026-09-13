@@ -7800,3 +7800,173 @@ document.addEventListener("click", function(e){
   document.addEventListener('visibilitychange',function(){if(!document.hidden){attempts=0;sync();}});
 })();
 </script>
+
+
+<style id="pastel-found-word-overrides">
+/* Each found word gets its own soft pastel highlight. */
+.cell.found.pastel-found-cell{
+  background:var(--found-word-color)!important;
+  color:#171321!important;
+  border-color:rgba(255,255,255,.34)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.10),0 4px 14px rgba(0,0,0,.16)!important;
+  transform:none!important;
+}
+#foundSelectionLines{
+  pointer-events:none;
+}
+.found-word-line{
+  fill:none;
+  stroke:var(--found-word-color);
+  stroke-width:10;
+  stroke-linecap:round;
+  opacity:.38;
+  pointer-events:none;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.18));
+}
+.word.pastel-found-word{
+  background:var(--found-word-color)!important;
+  color:#171321!important;
+  border-color:rgba(255,255,255,.34)!important;
+  text-decoration:line-through;
+}
+@media(max-width:600px){
+  .found-word-line{stroke-width:8}
+}
+</style>
+
+<script>
+/* Soft, unique highlight colors for every found word + continuous word trails. */
+(function(){
+  'use strict';
+
+  const PASTEL_FOUND_COLORS = [
+    '#B9A7FF', /* lavender */
+    '#8FD8FF', /* sky */
+    '#8FE3C1', /* mint */
+    '#FFD39A', /* peach */
+    '#FFB6D9', /* pink */
+    '#C7B7FF', /* violet */
+    '#9FE5E0', /* aqua */
+    '#FFE58A', /* soft yellow */
+    '#B8D7FF', /* periwinkle */
+    '#D4B8FF', /* lilac */
+    '#A9E8C4', /* green */
+    '#FFC0A8', /* coral */
+    '#AFCBFF', /* blue */
+    '#E4B8FF', /* orchid */
+    '#B8F0E2'  /* seafoam */
+  ];
+
+  function getSvg(){ return document.getElementById('selectionSvg'); }
+
+  function getLineGroup(){
+    const svg=getSvg();
+    if(!svg) return null;
+    let group=document.getElementById('foundSelectionLines');
+    if(!group){
+      group=document.createElementNS('http://www.w3.org/2000/svg','g');
+      group.id='foundSelectionLines';
+      svg.insertBefore(group,svg.firstChild?.nextSibling || null);
+    }
+    return group;
+  }
+
+  function colorForWord(word){
+    if(!game.foundColors) game.foundColors={};
+    if(!game.foundColors[word]){
+      const used=Object.keys(game.foundColors).length;
+      game.foundColors[word]=PASTEL_FOUND_COLORS[used % PASTEL_FOUND_COLORS.length];
+    }
+    return game.foundColors[word];
+  }
+
+  function cellCenter(cell,svgRect){
+    const r=cell.getBoundingClientRect();
+    return {
+      x:r.left+r.width/2-svgRect.left,
+      y:r.top+r.height/2-svgRect.top
+    };
+  }
+
+  function drawFoundWordLine(word,cells,color){
+    const svg=getSvg();
+    const group=getLineGroup();
+    if(!svg || !group || !cells || cells.length<2) return;
+
+    Array.from(group.children).find(el=>el.dataset.foundLine===word)?.remove();
+
+    const first=game.cellElements[cells[0].row]?.[cells[0].col];
+    const last=game.cellElements[cells[cells.length-1].row]?.[cells[cells.length-1].col];
+    if(!first || !last) return;
+
+    const svgRect=svg.getBoundingClientRect();
+    svg.setAttribute('viewBox',`0 0 ${svgRect.width} ${svgRect.height}`);
+    const a=cellCenter(first,svgRect);
+    const b=cellCenter(last,svgRect);
+
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.classList.add('found-word-line');
+    line.dataset.foundLine=word;
+    line.style.setProperty('--found-word-color',color);
+    line.setAttribute('x1',a.x);
+    line.setAttribute('y1',a.y);
+    line.setAttribute('x2',b.x);
+    line.setAttribute('y2',b.y);
+    group.appendChild(line);
+  }
+
+  function clearFoundLines(){
+    document.getElementById('foundSelectionLines')?.replaceChildren();
+  }
+
+  function applyFoundStyle(word,cells){
+    const color=colorForWord(word);
+    (cells||[]).forEach(pos=>{
+      const cell=game.cellElements[pos.row]?.[pos.col];
+      if(!cell) return;
+      cell.classList.add('pastel-found-cell');
+      cell.style.setProperty('--found-word-color',color);
+    });
+    const wordElement=document.querySelector(`[data-word="${word}"]`);
+    if(wordElement){
+      wordElement.classList.add('pastel-found-word');
+      wordElement.style.setProperty('--found-word-color',color);
+    }
+    drawFoundWordLine(word,cells,color);
+  }
+
+  /* Start every new puzzle with a clean set of colors/trails. */
+  const originalStartGame=window.startGame;
+  if(typeof originalStartGame==='function' && !window.__pastelFoundStartPatched){
+    window.__pastelFoundStartPatched=true;
+    window.startGame=function(puzzle){
+      clearFoundLines();
+      const result=originalStartGame.apply(this,arguments);
+      if(game) game.foundColors={};
+      return result;
+    };
+  }
+
+  /* Wrap the final foundWord function so it also gets a unique pastel color. */
+  const originalFoundWord=window.foundWord;
+  if(typeof originalFoundWord==='function' && !window.__pastelFoundWordPatched){
+    window.__pastelFoundWordPatched=true;
+    window.foundWord=function(word,cells){
+      const result=originalFoundWord.apply(this,arguments);
+      if(game?.found?.has(word)) applyFoundStyle(word,cells);
+      return result;
+    };
+  }
+
+  window.addEventListener('resize',function(){
+    if(!game?.found?.size) return;
+    for(const word of game.found){
+      const placement=game.placements?.find(p=>p.word===word || p.word?.toUpperCase()===word?.toUpperCase());
+      if(!placement) continue;
+      const color=game.foundColors?.[word] || colorForWord(word);
+      const cells=typeof getLineCells==='function' ? getLineCells(placement.start,placement.end) : [];
+      drawFoundWordLine(word,cells,color);
+    }
+  });
+})();
+</script>
