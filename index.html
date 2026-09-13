@@ -2048,6 +2048,37 @@ body.shared-game-mode .container{
 
 </style>
 
+<style id="puzzle-sus-new-window-and-saved-overrides">
+/* Word Search opens in its own compact modal window, like Jigsaw. */
+#wordSearchHomePage.ps-selector-modal{
+  position:fixed!important;inset:0!important;z-index:6800!important;
+  display:none!important;align-items:flex-start!important;justify-content:center!important;
+  padding:18px!important;overflow:auto!important;
+  min-height:100vh!important;background:rgba(5,4,12,.86)!important;
+  backdrop-filter:blur(9px)!important;
+}
+#wordSearchHomePage.ps-selector-modal.active{display:flex!important}
+#wordSearchHomePage.ps-selector-modal .ps-home-shell{
+  position:relative;width:min(900px,96vw);margin:22px auto!important;
+  padding:30px;border:1px solid #302b4b;border-radius:24px;
+  background:#19162d;box-shadow:0 30px 100px rgba(0,0,0,.62);
+}
+.ps-selector-close{
+  position:fixed;right:28px;top:28px;z-index:3;width:42px;height:42px;
+  border:1px solid #393253;background:#25213b;color:#eeeaf8;border-radius:12px;
+  font-size:25px;line-height:1;cursor:pointer;
+}
+.ps-selector-close:hover{background:#302b4b}
+.jigsaw-create-actions{flex-wrap:wrap}
+@media(max-width:760px){
+  #wordSearchHomePage.ps-selector-modal{padding:8px!important}
+  #wordSearchHomePage.ps-selector-modal .ps-home-shell{width:100%;margin:8px auto!important;padding:18px!important;border-radius:18px}
+  .ps-selector-close{right:16px;top:16px;width:38px;height:38px;font-size:22px}
+  .jigsaw-create-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .jigsaw-create-actions .btn:first-child{grid-column:1/-1}
+  .jigsaw-create-actions .btn{min-width:0}
+}
+</style>
 <style id="jigsaw-final-v3-overrides">
 /* One-screen Jigsaw game: no page/window scrolling. */
 .jigsaw-page{position:fixed!important;inset:0!important;padding:10px!important;overflow:hidden!important;align-items:center!important;justify-content:center!important}
@@ -2639,8 +2670,8 @@ body.shared-game-mode #gamePage .selection-arrow {
   </div>
 </section>
 
-<section id="wordSearchHomePage" class="page home ps-home-redesign">
-
+<section id="wordSearchHomePage" class="page home ps-home-redesign ps-selector-modal" aria-hidden="true">
+    <button class="ps-selector-close" type="button" onclick="closeWordSearchHome()" aria-label="Close">×</button>
     <div class="container ps-home-shell">
         <div class="ps-hero-copy">
             <div class="ps-hero-kicker"><span>🧩</span> WORD SEARCH ARENA</div>
@@ -2884,7 +2915,11 @@ body.shared-game-mode #gamePage .selection-arrow {
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Show game stats</span><input id="jigsawShowStats" type="checkbox" checked><i></i></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Sound effects</span><input id="jigsawSound" type="checkbox" checked><i></i></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Visibility</span><select id="jigsawVisibility"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></label></div>
-        <div class="jigsaw-create-actions"><button class="btn btn-secondary" onclick="closeJigsawCreate()">Cancel</button><button class="btn btn-primary" onclick="createJigsawPuzzle()">🧩 Create Puzzle</button></div>
+        <div class="jigsaw-create-actions">
+          <button class="btn btn-secondary" onclick="closeJigsawCreate()">Cancel</button>
+          <button id="jigsawSaveBtn" class="btn btn-secondary" onclick="saveJigsawPuzzle(false)">💾 Save Puzzle</button>
+          <button id="jigsawCreatePlayBtn" class="btn btn-primary" onclick="createJigsawPuzzle()">🧩 Save &amp; Play</button>
+        </div>
       </div>
       <div class="jigsaw-create-preview" id="jigsawCreatePreview"><div class="jigsaw-preview-empty">🧩<strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div></div>
     </div>
@@ -7882,7 +7917,7 @@ document.addEventListener("click", function(e){
 ========================================================= */
 (function(){
   const JKEY='puzzle_sus_jigsaws_v2';
-  let chooserMode='play', jPieces=16, jImageData='', jDrag=null, jTimer=null, jStarted=0, jMoves=0, jDone=0, jScore=0, jPuzzle=null;
+  let chooserMode='play', jPieces=16, jImageData='', jDrag=null, jTimer=null, jStarted=0, jMoves=0, jDone=0, jScore=0, jPuzzle=null, jEditingId=null;
   const $=id=>document.getElementById(id);
   const saved=()=>{try{return JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){return[]}};
   const toastMsg=(m)=>{if(typeof toast==='function')toast(m);else alert(m)};
@@ -7916,7 +7951,10 @@ document.addEventListener("click", function(e){
     $('jigsawCreatePage')?.classList.add('open');
     $('jigsawCreatePage')?.setAttribute('aria-hidden','false');
     document.body.classList.add('modal-open');
+    jEditingId=null;
     $('jigsawName').value=''; $('jigsawImage').value=''; $('jigsawImageName').textContent='No image selected';
+    $('jigsawSaveBtn').textContent='💾 Save Puzzle';
+    $('jigsawCreatePlayBtn').textContent='🧩 Save & Play';
     jImageData='';
     renderJPreview();
   }
@@ -7971,21 +8009,85 @@ document.addEventListener("click", function(e){
     box.innerHTML='<img src="'+jImageData+'" alt="Puzzle preview">';
   }
 
-  window.createJigsawPuzzle=function(){
+  function buildJigsawFromForm(existing){
     const name=($('jigsawName').value||'Untitled Jigsaw').trim();
-    if(!jImageData){toastMsg('Choose an image first.');return;}
-    const puzzle={
-      id:'JIG-'+Date.now().toString(36),name,image:jImageData,pieces:jPieces,
+    if(!jImageData){toastMsg('Choose an image first.');return null;}
+    return {
+      ...(existing||{}),
+      id:existing?.id||('JIG-'+Date.now().toString(36)),
+      name, image:jImageData, pieces:jPieces,
       rotation:$('jigsawRotation').checked,timer:$('jigsawTimer').value,
       scoring:$('jigsawScoring').checked,sound:$('jigsawSound').checked,
-      visibility:$('jigsawVisibility').value,showStats:$('jigsawShowStats')?.checked!==false,createdAt:Date.now()
+      visibility:$('jigsawVisibility').value,showStats:$('jigsawShowStats')?.checked!==false,
+      createdAt:existing?.createdAt||Date.now(),updatedAt:Date.now()
     };
+  }
+
+  window.saveJigsawPuzzle=function(playAfter=false){
+    const existing=jEditingId?saved().find(x=>x.id===jEditingId):null;
+    const puzzle=buildJigsawFromForm(existing);
+    if(!puzzle)return;
     const a=saved();
-    a.unshift(puzzle);
+    if(existing){
+      const idx=a.findIndex(x=>x.id===existing.id);
+      if(idx>=0)a[idx]=puzzle;
+    }else{
+      a.unshift(puzzle);
+    }
     if(!saveAll(a))return;
+    jEditingId=null;
     closeJigsawCreate();
-    startJigsaw(puzzle);
+    window.renderSavedPuzzles?.();
+    toastMsg(existing?'Jigsaw updated!':'Jigsaw saved!');
+    if(playAfter)startJigsaw(puzzle);
   };
+
+  window.createJigsawPuzzle=function(){saveJigsawPuzzle(true)};
+
+  window.editJigsawPuzzle=function(id){
+    const puzzle=saved().find(x=>x.id===id); if(!puzzle)return;
+    jEditingId=id; jPieces=Number(puzzle.pieces)||16; jImageData=puzzle.image||'';
+    $('jigsawName').value=puzzle.name||'';
+    $('jigsawImage').value=''; $('jigsawImageName').textContent='Using saved image';
+    $('jigsawRotation').checked=!!puzzle.rotation; $('jigsawTimer').value=puzzle.timer||'up';
+    $('jigsawScoring').checked=puzzle.scoring!==false; $('jigsawShowStats').checked=puzzle.showStats!==false;
+    $('jigsawSound').checked=puzzle.sound!==false; $('jigsawVisibility').value=puzzle.visibility||'public';
+    setJigsawPieces(jPieces);
+    $('jigsawSaveBtn').textContent='💾 Update Puzzle'; $('jigsawCreatePlayBtn').textContent='🧩 Update & Play';
+    renderJPreview();
+    $('jigsawCreatePage')?.classList.add('open');$('jigsawCreatePage')?.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
+  };
+
+  window.deleteJigsawPuzzle=function(id){
+    const puzzle=saved().find(x=>x.id===id); if(!puzzle)return;
+    if(!confirm('Delete "'+puzzle.name.replace(/"/g,'\\"')+'"?'))return;
+    saveAll(saved().filter(x=>x.id!==id));
+    window.renderSavedPuzzles?.(); toastMsg('Jigsaw deleted.');
+  };
+
+  function encodeJigsawShare(p){
+    const data={n:p.name,i:p.image,p:p.pieces,r:!!p.rotation,t:p.timer||'up',s:p.scoring!==false,a:p.sound!==false,v:p.visibility||'public',g:p.showStats!==false};
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function decodeJigsawShare(code){
+    try{
+      let b=code.replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4)b+='=';
+      const data=JSON.parse(decodeURIComponent(escape(atob(b))));
+      if(!data?.n||!data?.i)return null;
+      return {id:'shared-jigsaw-'+Date.now().toString(36),name:data.n,image:data.i,pieces:Number(data.p)||16,rotation:!!data.r,timer:data.t||'up',scoring:data.s!==false,sound:data.a!==false,visibility:data.v||'public',showStats:data.g!==false,createdAt:Date.now(),shared:true};
+    }catch(e){return null}
+  }
+  window.shareJigsawPuzzle=function(id){
+    const p=saved().find(x=>x.id===id); if(!p)return;
+    const url=location.origin+location.pathname+'#jigsaw='+encodeJigsawShare(p);
+    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(url).then(()=>toastMsg('Jigsaw link copied! 🔗')).catch(()=>showShareFallback?.(url));}
+    else showShareFallback?.(url);
+  };
+  window.playSharedJigsaw=function(code){const p=decodeJigsawShare(code);if(p)startJigsaw(p);};
+  function checkSharedJigsaw(){
+    try{const h=location.hash||'';if(!h.startsWith('#jigsaw='))return;const p=decodeJigsawShare(h.substring(8));if(p){history.replaceState(null,'',location.pathname);startJigsaw(p);}}catch(e){}
+  }
+
 
   function gridFor(n){
     const side=Math.max(1,Math.round(Math.sqrt(Number(n)||16)));
@@ -8170,30 +8272,48 @@ document.addEventListener("click", function(e){
   function completeJigsaw(){
     clearInterval(jTimer);const b=$('jigsawBoard');
     const d=document.createElement('div');d.className='jigsaw-complete';
-    d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div>`;
+    d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-secondary" onclick="replayJigsaw()">↻ Play Again</button><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div></div>`;
     b.appendChild(d);
   }
+  window.replayJigsaw=function(){if(!jPuzzle)return;const p={...jPuzzle};$('jigsawBoard').querySelector('.jigsaw-complete')?.remove();startJigsaw(p);};
   window.closeJigsawGame=function(){clearInterval(jTimer);$('jigsawGamePage')?.classList.remove('open');$('jigsawGamePage')?.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open')};
   window.shuffleJigsaw=function(){if(jPuzzle)makeSvg(jPuzzle)};
   window.fitJigsaw=function(){const b=$('jigsawBoard');if(b)b.scrollIntoView({block:'center'})};
 
-  /* Saved Puzzles: keep the existing Word Search modal and expose Jigsaws from it. */
-  const originalSavedModal=window.openSavedPuzzlesModal;
-  window.openSavedPuzzlesModal=function(){
-    const m=$('puzzleChooser');
-    if(!m){originalSavedModal?.();return;}
-    chooserMode='saved';m.classList.add('open');document.body.classList.add('modal-open');
+  window.getSavedJigsawsHTML=function(){
+    const a=saved();
+    if(!a.length)return '';
+    return '<div style="grid-column:1/-1;margin:8px 0 0;font-size:12px;font-weight:950;letter-spacing:1px;color:#a78bfa">🧩 JIGSAW PUZZLES</div>'+a.map(p=>`<div class="quiz-card"><div class="quiz-card-title">${String(p.name).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[m]))}</div><div class="quiz-card-meta">${Number(p.pieces)||16} pieces • Jigsaw</div><div class="quiz-card-actions"><button class="btn btn-primary btn-small" onclick="startSavedJigsaw('${p.id}')">▶ Play</button><button class="btn btn-secondary btn-small" onclick="editJigsawPuzzle('${p.id}')">✏️ Edit</button><button class="btn btn-secondary btn-small" onclick="shareJigsawPuzzle('${p.id}')">🔗 Share</button><button class="btn btn-danger btn-small" onclick="deleteJigsawPuzzle('${p.id}')">Delete</button></div></div>`).join('');
+  };
+  window.startSavedJigsaw=function(id){const p=saved().find(x=>x.id===id);if(p)startJigsaw(p);};
+  const originalRenderSaved=window.renderSavedPuzzles;
+  window.renderSavedPuzzles=function(){
+    const r=originalRenderSaved?.();
+    const extra=window.getSavedJigsawsHTML?.();
+    ['quizGrid','savedPuzzlesModalGrid'].forEach(id=>{const g=document.getElementById(id);if(g&&extra)g.insertAdjacentHTML('beforeend',extra);});
+    return r;
   };
 
+  window.addEventListener('DOMContentLoaded',checkSharedJigsaw);
   window.addEventListener('beforeunload',()=>clearInterval(jTimer));
 })();
 </script>
 
+<script>
+function closeWordSearchHome(){
+  const modal=document.getElementById('wordSearchHomePage');
+  if(modal){modal.classList.remove('active');modal.setAttribute('aria-hidden','true');}
+  document.body.classList.remove('modal-open');
+  showPage('homePage');
+}
+</script>
 <script id="main-puzzle-selector-script">
 (function(){
   window.selectMainPuzzle=function(type){
     if(type==='word'){
       showPage('wordSearchHomePage');
+      const modal=document.getElementById('wordSearchHomePage');
+      if(modal){modal.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');}
       return;
     }
     if(type==='jigsaw'){
