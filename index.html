@@ -8097,19 +8097,6 @@ document.addEventListener("click", function(e){
     const {cols}=gridFor(jPuzzle?.pieces||16),cw=800/cols,ch=800/cols;
     g.setAttribute('transform',`translate(${x} ${y}) rotate(${rot} ${cw/2} ${ch/2})`);
   }
-
-  /* Keep every unsolved piece above all solved/locked pieces.
-     SVG stacking follows DOM order, so locked pieces are kept below
-     the first unlocked piece while unlocked pieces remain draggable/topmost. */
-  function normalizeJigsawLayering(){
-    const svg=$('jigsawSvg'); if(!svg)return;
-    const pieces=[...svg.querySelectorAll('.jigsaw-piece')];
-    const firstUnlocked=pieces.find(g=>g.dataset.locked!=='1');
-    pieces.filter(g=>g.dataset.locked==='1').forEach(g=>{
-      if(firstUnlocked&&g!==firstUnlocked) svg.insertBefore(g,firstUnlocked);
-      else if(!firstUnlocked) svg.appendChild(g);
-    });
-  }
   function startDrag(e){
     if(e.button!==undefined&&e.button!==0)return;
     const g=e.currentTarget;if(!g||g.dataset.locked==='1')return;
@@ -8145,7 +8132,6 @@ document.addEventListener("click", function(e){
     jMoves++;if($('jigsawMoves'))$('jigsawMoves').textContent=jMoves;
     if(dx<=snap&&dy<=snap&&rotOK){
       applyPieceTransform(g,cx,cy,0);g.dataset.locked='1';g.dataset.rot='0';g.style.cursor='default';
-      normalizeJigsawLayering();
       jDone++;if($('jigsawProgress'))$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
       if(jPuzzle.scoring){jScore+=100;if($('jigsawScore'))$('jigsawScore').textContent=jScore}
       if(jDone===jPuzzle.pieces)completeJigsaw();
