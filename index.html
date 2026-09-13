@@ -8175,7 +8175,7 @@ document.addEventListener("click", function(e){
 
     const bg=document.createElementNS('http://www.w3.org/2000/svg','image');
     bg.setAttribute('href',p.image);bg.setAttribute('x',0);bg.setAttribute('y',0);bg.setAttribute('width',S);bg.setAttribute('height',S);
-    bg.setAttribute('preserveAspectRatio','xMidYMid slice');bg.setAttribute('opacity','1');bg.setAttribute('pointer-events','none');bg.style.mixBlendMode='normal';
+    bg.setAttribute('preserveAspectRatio','xMidYMid slice');bg.setAttribute('opacity','0.18');bg.setAttribute('pointer-events','none');bg.style.mixBlendMode='normal';
     bg.dataset.jigsawReference='1';
     svg.appendChild(bg);
 
@@ -8446,3 +8446,99 @@ document.addEventListener("click", function(e){
   document.addEventListener('visibilitychange',function(){if(!document.hidden){attempts=0;sync();}});
 })();
 </script>
+
+
+<style id="jigsaw-larger-canvas-v1">
+/* =========================================================
+   JIGSAW — LARGER PUZZLE CANVAS
+   Keeps the puzzle square and centered instead of stretching
+   it across the full wide board.
+========================================================= */
+
+@media screen and (min-width:761px){
+  .jigsaw-game-window{
+    width:min(1400px,98vw)!important;
+    height:calc(100vh - 16px)!important;
+    max-height:none!important;
+  }
+
+  .jigsaw-game-head{
+    padding:10px 18px!important;
+    min-height:50px!important;
+  }
+
+  .jigsaw-game-head h2{
+    font-size:21px!important;
+    margin:1px 0!important;
+  }
+
+  .jigsaw-stats{
+    padding:6px 14px!important;
+    gap:7px!important;
+  }
+
+  .jigsaw-stats>div{
+    padding:6px 10px!important;
+  }
+
+  .jigsaw-stats small{
+    font-size:8px!important;
+  }
+
+  .jigsaw-stats b{
+    font-size:15px!important;
+  }
+
+  .jigsaw-board-wrap{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:0 14px 8px!important;
+    overflow:hidden!important;
+  }
+
+  .jigsaw-board{
+    flex:0 0 auto!important;
+    width:min(calc(100vh - 178px), calc(100vw - 90px))!important;
+    height:auto!important;
+    aspect-ratio:1/1!important;
+    min-height:0!important;
+    max-height:100%!important;
+    border-radius:18px!important;
+  }
+
+  .jigsaw-board svg{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    display:block!important;
+  }
+
+  .jigsaw-game-actions{
+    padding:0 14px 8px!important;
+  }
+}
+
+@media screen and (max-width:760px){
+  .jigsaw-board-wrap{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+
+  .jigsaw-board{
+    width:min(100%, 70vh)!important;
+    height:auto!important;
+    aspect-ratio:1/1!important;
+    min-height:0!important;
+  }
+
+  .jigsaw-board svg{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+  }
+}
+</style>
