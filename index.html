@@ -2048,6 +2048,34 @@ body.shared-game-mode .container{
 
 </style>
 
+<style id="jigsaw-final-v3-overrides">
+/* One-screen Jigsaw game: no page/window scrolling. */
+.jigsaw-page{position:fixed!important;inset:0!important;padding:10px!important;overflow:hidden!important;align-items:center!important;justify-content:center!important}
+.jigsaw-game-window{width:min(1280px,98vw)!important;height:calc(100vh - 20px)!important;max-height:none!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;border-radius:22px!important}
+.jigsaw-game-head{flex:0 0 auto!important;padding:14px 20px!important;min-height:58px!important}
+.jigsaw-game-head h2{font-size:22px!important;margin:2px 0!important}
+.jigsaw-game-head .jigsaw-kicker{font-size:9px!important}
+.jigsaw-stats{flex:0 0 auto!important;gap:7px!important;padding:8px 16px!important}
+.jigsaw-stats>div{padding:7px 10px!important;border-radius:11px!important}
+.jigsaw-stats small{font-size:8px!important}
+.jigsaw-stats b{font-size:15px!important}
+.jigsaw-board-wrap{display:flex!important;flex:1 1 auto!important;min-height:0!important;padding:0 16px 10px!important}
+.jigsaw-board{flex:1 1 auto!important;min-height:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
+.jigsaw-board svg{width:100%!important;height:100%!important;min-height:0!important;display:block!important}
+.jigsaw-game-actions{flex:0 0 auto!important;padding:0 16px 12px!important}
+.jigsaw-game-window .jigsaw-x{width:36px!important;height:36px!important;font-size:21px!important}
+.jigsaw-piece{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important}
+@media(max-width:760px){
+ .jigsaw-page{padding:6px!important}
+ .jigsaw-game-window{width:100%!important;height:calc(100vh - 12px)!important;border-radius:16px!important}
+ .jigsaw-game-head{padding:10px 12px!important}
+ .jigsaw-stats{grid-template-columns:repeat(4,1fr)!important;padding:6px 10px!important}
+ .jigsaw-stats>div{padding:6px 5px!important;text-align:center}
+ .jigsaw-stats b{font-size:13px!important}
+ .jigsaw-board-wrap{padding:0 10px 8px!important}
+ .jigsaw-game-actions{padding:0 10px 8px!important}
+}
+</style>
 <style id="shared-game-final-overrides">
 /* FINAL SHARED-GAME VIEW: game only */
 body.shared-game-mode {
@@ -2853,6 +2881,7 @@ body.shared-game-mode #gamePage .selection-arrow {
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Rotate pieces</span><input id="jigsawRotation" type="checkbox"><i></i></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Timer</span><select id="jigsawTimer"><option value="up">Count Up</option><option value="off">Off</option><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15">15 Minutes</option></select></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Scoring</span><input id="jigsawScoring" type="checkbox" checked><i></i></label></div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Show game stats</span><input id="jigsawShowStats" type="checkbox" checked><i></i></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Sound effects</span><input id="jigsawSound" type="checkbox" checked><i></i></label></div>
         <div class="jigsaw-simple-row"><label class="switch-row"><span>Visibility</span><select id="jigsawVisibility"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></label></div>
         <div class="jigsaw-create-actions"><button class="btn btn-secondary" onclick="closeJigsawCreate()">Cancel</button><button class="btn btn-primary" onclick="createJigsawPuzzle()">🧩 Create Puzzle</button></div>
@@ -2868,8 +2897,8 @@ body.shared-game-mode #gamePage .selection-arrow {
 <section id="jigsawGamePage" class="jigsaw-page" aria-hidden="true">
   <div class="jigsaw-game-window">
     <div class="jigsaw-game-head"><div><div class="jigsaw-kicker">🧩 JIGSAW PUZZLE</div><h2 id="jigsawGameTitle">Jigsaw Puzzle</h2></div><button class="jigsaw-x" onclick="closeJigsawGame()">×</button></div>
-    <div class="jigsaw-stats"><div><small>TIME</small><b id="jigsawTime">00:00</b></div><div><small>MOVES</small><b id="jigsawMoves">0</b></div><div><small>PIECES</small><b id="jigsawProgress">0/16</b></div><div><small>SCORE</small><b id="jigsawScore">0</b></div></div>
-    <div class="jigsaw-board-wrap"><div class="jigsaw-reference"><div>REFERENCE</div><img id="jigsawReference" alt="Puzzle reference"></div><div class="jigsaw-board" id="jigsawBoard"><svg id="jigsawSvg" aria-label="Jigsaw board"></svg></div></div>
+    <div class="jigsaw-stats" id="jigsawGameStats"><div><small>TIME</small><b id="jigsawTime">00:00</b></div><div><small>MOVES</small><b id="jigsawMoves">0</b></div><div><small>PIECES</small><b id="jigsawProgress">0/16</b></div><div><small>SCORE</small><b id="jigsawScore">0</b></div></div>
+    <div class="jigsaw-board-wrap"><div class="jigsaw-board" id="jigsawBoard"><svg id="jigsawSvg" aria-label="Jigsaw board"></svg></div></div>
     <div class="jigsaw-game-actions"><button class="btn btn-secondary" onclick="shuffleJigsaw()">↻ Shuffle</button><button class="btn btn-secondary" onclick="fitJigsaw()">⛶ Fit</button><button class="btn btn-primary" onclick="closeJigsawGame()">Exit</button></div>
   </div>
 </section>
@@ -7949,7 +7978,7 @@ document.addEventListener("click", function(e){
       id:'JIG-'+Date.now().toString(36),name,image:jImageData,pieces:jPieces,
       rotation:$('jigsawRotation').checked,timer:$('jigsawTimer').value,
       scoring:$('jigsawScoring').checked,sound:$('jigsawSound').checked,
-      visibility:$('jigsawVisibility').value,createdAt:Date.now()
+      visibility:$('jigsawVisibility').value,showStats:$('jigsawShowStats')?.checked!==false,createdAt:Date.now()
     };
     const a=saved();
     a.unshift(puzzle);
@@ -7958,20 +7987,25 @@ document.addEventListener("click", function(e){
     startJigsaw(puzzle);
   };
 
-  function gridFor(n){const side=Math.round(Math.sqrt(n));return {cols:side,rows:side,total:side*side};}
+  function gridFor(n){
+    const side=Math.max(1,Math.round(Math.sqrt(Number(n)||16)));
+    return {cols:side,rows:side,total:side*side};
+  }
   function boundarySign(a,b){
     let x=(a*1103515245+b*12345+67890)>>>0;
     return (x%2===0)?1:-1;
   }
   function edgePathHorizontal(x,y,len,tab,sign,edge){
-    if(edge===0||!sign)return `L ${x+len} ${y}`;
-    const m=x+len/2, t=Math.min(tab,len*.18), neck=Math.min(tab*.55,len*.11);
-    return `L ${m-t} ${y} C ${m-neck} ${y} ${m-neck} ${y+sign*tab} ${m} ${y+sign*tab} C ${m+neck} ${y+sign*tab} ${m+neck} ${y} ${m+t} ${y} L ${x+len} ${y}`;
+    if(!edge||!sign)return `L ${x+len} ${y}`;
+    const dir=len<0?-1:1, ax=x, bx=x+len, m=x+len/2;
+    const t=Math.min(tab,Math.abs(len)*.18), neck=Math.min(tab*.55,Math.abs(len)*.11);
+    return `L ${m-dir*t} ${y} C ${m-dir*neck} ${y} ${m-dir*neck} ${y+sign*tab} ${m} ${y+sign*tab} C ${m+dir*neck} ${y+sign*tab} ${m+dir*neck} ${y} ${m+dir*t} ${y} L ${bx} ${y}`;
   }
   function edgePathVertical(x,y,len,tab,sign,edge){
-    if(edge===0||!sign)return `L ${x} ${y+len}`;
-    const m=y+len/2, t=Math.min(tab,len*.18), neck=Math.min(tab*.55,len*.11);
-    return `L ${x} ${m-t} C ${x} ${m-neck} ${x+sign*tab} ${m-neck} ${x+sign*tab} ${m} C ${x+sign*tab} ${m+neck} ${x} ${m+neck} ${x} ${m+t} L ${x} ${y+len}`;
+    if(!edge||!sign)return `L ${x} ${y+len}`;
+    const dir=len<0?-1:1, m=y+len/2;
+    const t=Math.min(tab,Math.abs(len)*.18), neck=Math.min(tab*.55,Math.abs(len)*.11);
+    return `L ${x} ${m-dir*t} C ${x} ${m-dir*neck} ${x+sign*tab} ${m-dir*neck} ${x+sign*tab} ${m} C ${x+sign*tab} ${m+dir*neck} ${x} ${m+dir*neck} ${x} ${m+dir*t} L ${x} ${y+len}`;
   }
   function piecePath(w,h,top,right,bottom,left){
     const tab=Math.min(w,h)*.22;
@@ -7982,7 +8016,6 @@ document.addEventListener("click", function(e){
       +edgePathVertical(0,h,-h,tab,left,left!==0)
       +' Z';
   }
-
   function makeSvg(p){
     const svg=$('jigsawSvg'); if(!svg)return;
     svg.innerHTML='';
@@ -7990,14 +8023,17 @@ document.addEventListener("click", function(e){
     const S=800,cw=S/cols,ch=S/rows;
     svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
     svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    svg.style.touchAction='none';
     const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');svg.appendChild(defs);
 
     const bg=document.createElementNS('http://www.w3.org/2000/svg','image');
     bg.setAttribute('href',p.image);bg.setAttribute('x',0);bg.setAttribute('y',0);bg.setAttribute('width',S);bg.setAttribute('height',S);
-    bg.setAttribute('preserveAspectRatio','xMidYMid slice');bg.setAttribute('opacity','.13');bg.setAttribute('pointer-events','none');svg.appendChild(bg);
+    bg.setAttribute('preserveAspectRatio','xMidYMid slice');bg.setAttribute('opacity','.10');bg.setAttribute('pointer-events','none');svg.appendChild(bg);
 
     jDone=0;jMoves=0;jScore=0;
-    $('jigsawMoves').textContent='0';$('jigsawProgress').textContent=`0/${p.pieces}`;$('jigsawScore').textContent='0';
+    if($('jigsawMoves'))$('jigsawMoves').textContent='0';
+    if($('jigsawProgress'))$('jigsawProgress').textContent=`0/${p.pieces}`;
+    if($('jigsawScore'))$('jigsawScore').textContent='0';
 
     for(let i=0;i<p.pieces;i++){
       const row=Math.floor(i/cols),col=i%cols;
@@ -8006,14 +8042,19 @@ document.addEventListener("click", function(e){
       const right=col===cols-1?0:boundarySign(row,col+1);
       const bottom=row===rows-1?0:boundarySign(row+1,col);
       const path=piecePath(cw,ch,top,right,bottom,left);
+
       const cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath');
       cp.id='jclip_'+i;cp.setAttribute('clipPathUnits','userSpaceOnUse');
       const cpPath=document.createElementNS('http://www.w3.org/2000/svg','path');cpPath.setAttribute('d',path);cp.appendChild(cpPath);defs.appendChild(cp);
 
       const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.classList.add('jigsaw-piece');g.dataset.index=i;g.dataset.correctX=col*cw;g.dataset.correctY=row*ch;
+      g.classList.add('jigsaw-piece');
+      g.dataset.index=i;g.dataset.correctX=col*cw;g.dataset.correctY=row*ch;
       g.dataset.rot=p.rotation?String(Math.floor(Math.random()*4)*90):'0';
-      const maxX=S-cw,maxY=S-ch;
+      g.dataset.locked='0';
+      g.setAttribute('pointer-events','all');
+      g.style.cursor='grab';
+      const maxX=Math.max(0,S-cw),maxY=Math.max(0,S-ch);
       const sx=Math.random()*maxX,sy=Math.random()*maxY;
       g.setAttribute('transform',`translate(${sx} ${sy}) rotate(${g.dataset.rot} ${cw/2} ${ch/2})`);
 
@@ -8021,44 +8062,85 @@ document.addEventListener("click", function(e){
       pi.setAttribute('href',p.image);pi.setAttribute('x',-col*cw);pi.setAttribute('y',-row*ch);pi.setAttribute('width',S);pi.setAttribute('height',S);
       pi.setAttribute('preserveAspectRatio','xMidYMid slice');pi.setAttribute('clip-path',`url(#jclip_${i})`);pi.setAttribute('pointer-events','none');
       g.appendChild(pi);
+
+      // Invisible hit shape makes the entire piece reliably draggable on desktop and touch.
+      const hit=document.createElementNS('http://www.w3.org/2000/svg','path');
+      hit.setAttribute('d',path);hit.setAttribute('fill','rgba(255,255,255,.001)');hit.setAttribute('stroke','none');hit.setAttribute('pointer-events','fill');
+      g.appendChild(hit);
+
       const outline=document.createElementNS('http://www.w3.org/2000/svg','path');
-      outline.setAttribute('d',path);outline.setAttribute('fill','none');outline.setAttribute('stroke','rgba(255,255,255,.78)');outline.setAttribute('stroke-width','2.2');outline.setAttribute('vector-effect','non-scaling-stroke');outline.setAttribute('pointer-events','none');g.appendChild(outline);
-      svg.appendChild(g);g.addEventListener('pointerdown',startDrag);
+      outline.setAttribute('d',path);outline.setAttribute('fill','none');outline.setAttribute('stroke','rgba(255,255,255,.80)');outline.setAttribute('stroke-width','2.2');outline.setAttribute('vector-effect','non-scaling-stroke');outline.setAttribute('pointer-events','none');g.appendChild(outline);
+
+      svg.appendChild(g);
+      g.addEventListener('pointerdown',startDrag,{passive:false});
+      g.addEventListener('dblclick',rotatePiece);
     }
   }
 
-  function screenPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
-  function readTranslate(g){const m=g.getAttribute('transform')?.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);return m?[+m[1],+m[2]]:[0,0];}
+  function screenPoint(svg,e){
+    const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+    const m=svg.getScreenCTM();return m?pt.matrixTransform(m.inverse()):{x:e.offsetX,y:e.offsetY};
+  }
+  function readTranslate(g){
+    const m=g.getAttribute('transform')?.match(/translate\(\s*([-\d.]+)[,\s]+([-\d.]+)\s*\)/);
+    return m?[+m[1],+m[2]]:[0,0];
+  }
+  function readRotation(g){
+    const m=g.getAttribute('transform')?.match(/rotate\(\s*(-?\d+(?:\.\d+)?)\b/);
+    return m?Number(m[1]):0;
+  }
+  function applyPieceTransform(g,x,y,rot){
+    const svg=$('jigsawSvg');
+    const {cols}=gridFor(jPuzzle?.pieces||16),cw=800/cols,ch=800/cols;
+    g.setAttribute('transform',`translate(${x} ${y}) rotate(${rot} ${cw/2} ${ch/2})`);
+  }
   function startDrag(e){
-    e.preventDefault();
-    const g=e.currentTarget;if(g.dataset.locked==='1')return;
+    if(e.button!==undefined&&e.button!==0)return;
+    const g=e.currentTarget;if(!g||g.dataset.locked==='1')return;
+    e.preventDefault();e.stopPropagation();
     const svg=$('jigsawSvg'),pt=screenPoint(svg,e),[tx,ty]=readTranslate(g);
-    jDrag={g,startX:pt.x,startY:pt.y,tx,ty};
-    g.parentNode.appendChild(g);g.setPointerCapture?.(e.pointerId);
-    window.addEventListener('pointermove',drag);window.addEventListener('pointerup',endDrag,{once:true});
+    jDrag={g,startX:pt.x,startY:pt.y,tx,ty,pointerId:e.pointerId};
+    g.parentNode.appendChild(g);
+    try{g.setPointerCapture(e.pointerId)}catch(_){ }
+    window.addEventListener('pointermove',drag,{passive:false});
+    window.addEventListener('pointerup',endDrag,{once:true});
+    window.addEventListener('pointercancel',endDrag,{once:true});
   }
   function drag(e){
     if(!jDrag)return;
+    e.preventDefault();
     const p=screenPoint($('jigsawSvg'),e),g=jDrag.g;
-    g.setAttribute('transform',`translate(${jDrag.tx+p.x-jDrag.startX} ${jDrag.ty+p.y-jDrag.startY}) rotate(${g.dataset.rot} ${+g.getBBox().width/2} ${+g.getBBox().height/2})`);
+    const rot=readRotation(g);
+    applyPieceTransform(g,jDrag.tx+p.x-jDrag.startX,jDrag.ty+p.y-jDrag.startY,rot);
+  }
+  function rotatePiece(e){
+    if(!jPuzzle?.rotation)return;
+    const g=e.currentTarget;if(!g||g.dataset.locked==='1')return;
+    e.preventDefault();e.stopPropagation();
+    const [x,y]=readTranslate(g),rot=(readRotation(g)+90)%360;
+    g.dataset.rot=String(rot);applyPieceTransform(g,x,y,rot);
   }
   function endDrag(){
     if(!jDrag)return;
     const g=jDrag.g,[tx,ty]=readTranslate(g),cx=+g.dataset.correctX,cy=+g.dataset.correctY;
-    const rotOK=!jPuzzle.rotation||g.dataset.rot==='0';
-    const dx=Math.abs(tx-cx),dy=Math.abs(ty-cy),snap=Math.max(18,Math.min(34,800/Math.sqrt(jPuzzle.pieces)*.22));
-    jMoves++;$('jigsawMoves').textContent=jMoves;
+    const rot=readRotation(g),rotOK=!jPuzzle.rotation||rot===0;
+    const dx=Math.abs(tx-cx),dy=Math.abs(ty-cy);
+    const snap=Math.max(24,Math.min(52,800/Math.sqrt(jPuzzle.pieces)*.40));
+    jMoves++;if($('jigsawMoves'))$('jigsawMoves').textContent=jMoves;
     if(dx<=snap&&dy<=snap&&rotOK){
-      g.setAttribute('transform','translate('+cx+' '+cy+') rotate(0 0 0)');g.dataset.locked='1';g.style.cursor='default';
-      jDone++;$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
-      if(jPuzzle.scoring){jScore+=100;$('jigsawScore').textContent=jScore}
+      applyPieceTransform(g,cx,cy,0);g.dataset.locked='1';g.dataset.rot='0';g.style.cursor='default';
+      jDone++;if($('jigsawProgress'))$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
+      if(jPuzzle.scoring){jScore+=100;if($('jigsawScore'))$('jigsawScore').textContent=jScore}
       if(jDone===jPuzzle.pieces)completeJigsaw();
     }
     window.removeEventListener('pointermove',drag);jDrag=null;
   }
 
   function startJigsaw(p){
-    jPuzzle=p;$('jigsawGameTitle').textContent=p.name;$('jigsawReference').src=p.image;
+    jPuzzle=p;
+    $('jigsawGameTitle').textContent=p.name;
+    const stats=$('jigsawGameStats');
+    if(stats)stats.style.display=p.showStats===false?'none':'';
     $('jigsawGamePage').classList.add('open');$('jigsawGamePage').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
     makeSvg(p);clearInterval(jTimer);jStarted=Date.now();
     if(p.timer!=='off')jTimer=setInterval(updateJTime,250);else $('jigsawTime').textContent='--:--';
