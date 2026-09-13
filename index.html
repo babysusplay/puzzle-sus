@@ -7970,3 +7970,217 @@ document.addEventListener("click", function(e){
   });
 })();
 </script>
+
+
+<!-- =========================================================
+     PUZZLE GAMES HUB + JIGSAW PUZZLE
+     Added as a self-contained layer; existing Word Search code remains intact.
+========================================================= -->
+<style id="ps-jigsaw-styles">
+  .ps-game-picker{max-width:980px;margin:0 auto;padding:34px 18px 80px}
+  .ps-game-picker-head{text-align:center;margin:8px 0 28px}
+  .ps-game-picker-kicker{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border:1px solid rgba(139,92,246,.28);border-radius:999px;background:rgba(139,92,246,.08);font-size:11px;font-weight:800;letter-spacing:.14em;color:#b9a7ff}
+  .ps-game-picker-title{font-size:clamp(32px,6vw,58px);font-weight:900;line-height:1.02;margin:15px 0 10px;color:#f7f3ff}
+  .ps-game-picker-sub{color:#9f9bb0;max-width:620px;margin:auto;line-height:1.6}
+  .ps-game-picker-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .ps-game-choice{position:relative;min-height:230px;border:1px solid rgba(255,255,255,.09);border-radius:26px;padding:28px;text-align:left;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018));box-shadow:0 20px 55px rgba(0,0,0,.22);cursor:pointer;transition:.22s ease;overflow:hidden;color:#fff}
+  .ps-game-choice:hover{transform:translateY(-4px);border-color:rgba(139,92,246,.5);box-shadow:0 28px 65px rgba(0,0,0,.32)}
+  .ps-game-choice .ico{font-size:42px;margin-bottom:18px}.ps-game-choice h3{margin:0 0 8px;font-size:25px}.ps-game-choice p{margin:0;color:#aaa5b8;line-height:1.55}.ps-game-choice .go{position:absolute;right:22px;bottom:20px;font-size:24px;color:#b9a7ff}
+  .ps-game-choice.jigsaw{background:radial-gradient(circle at 80% 15%,rgba(139,92,246,.18),transparent 35%),linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018))}
+  .ps-jigsaw-shell{min-height:calc(100vh - 72px);padding:24px 14px 50px}
+  .ps-jigsaw-top{max-width:1200px;margin:0 auto 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .ps-jigsaw-title{font-size:26px;font-weight:900}.ps-jigsaw-meta{color:#9d99aa;font-size:12px;margin-top:4px}
+  .ps-jigsaw-actions{display:flex;gap:8px;flex-wrap:wrap}.ps-jbtn{border:1px solid rgba(255,255,255,.1);background:#171521;color:#fff;border-radius:11px;padding:9px 13px;font-weight:800;cursor:pointer}.ps-jbtn:hover{border-color:#8b5cf6}.ps-jbtn.primary{background:#7c3aed;border-color:#8b5cf6}.ps-jbtn.danger{background:#24131a}
+  .ps-jigsaw-layout{max-width:1200px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px}
+  .ps-jboard-wrap{position:relative;min-height:520px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:#0d0c13;overflow:hidden;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+  .ps-jboard{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab}.ps-jboard.dragging{cursor:grabbing}
+  .ps-jghost{position:absolute;pointer-events:none;opacity:.12;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%);max-width:70%;max-height:70%;border-radius:8px;display:none}
+  .ps-jpiece{position:absolute;box-sizing:border-box;background-repeat:no-repeat;filter:drop-shadow(0 7px 8px rgba(0,0,0,.28));cursor:grab;user-select:none;touch-action:none;will-change:transform;transition:filter .12s}.ps-jpiece:hover{filter:drop-shadow(0 10px 12px rgba(139,92,246,.2));z-index:9999}.ps-jpiece.locked{cursor:default;filter:drop-shadow(0 3px 4px rgba(0,0,0,.22))}
+  .ps-jpiece.dragging{z-index:10000;filter:drop-shadow(0 14px 20px rgba(0,0,0,.42))}
+  .ps-jpiece.hint{outline:2px solid #facc15;outline-offset:3px;animation:psHint 1s ease 2}@keyframes psHint{50%{filter:drop-shadow(0 0 18px rgba(250,204,21,.9))}}
+  .ps-jside{border:1px solid rgba(255,255,255,.08);border-radius:22px;background:#111019;padding:15px;height:max-content}.ps-jstat{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ps-jstat>div{padding:11px;border-radius:13px;background:#181722}.ps-jstat b{display:block;font-size:19px}.ps-jstat span{font-size:10px;color:#9691a3;text-transform:uppercase;letter-spacing:.08em}.ps-jref{margin-top:13px}.ps-jref-title{font-size:11px;font-weight:900;color:#aaa5b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}.ps-jref img{display:block;width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);cursor:pointer}.ps-jtools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.ps-jprogress{height:7px;background:#23212d;border-radius:99px;overflow:hidden;margin:12px 0 5px}.ps-jprogress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#38bdf8);transition:.25s}.ps-jhint-note{font-size:11px;color:#777286;line-height:1.45;margin-top:9px}
+  .ps-jcreator{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.7);backdrop-filter:blur(10px)}.ps-jcreator.open{display:flex}.ps-jcreator-window{width:min(1100px,100%);max-height:92vh;overflow:auto;border:1px solid rgba(255,255,255,.1);border-radius:24px;background:#111019;box-shadow:0 30px 100px rgba(0,0,0,.55)}.ps-jcreator-head{padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:15px}.ps-jcreator-head h2{margin:0;font-size:23px}.ps-jcreator-head p{margin:5px 0 0;color:#858091;font-size:12px}.ps-jcreator-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}.ps-jfield{margin-bottom:15px}.ps-jfield label{display:block;font-size:10px;font-weight:900;color:#a9a4b5;letter-spacing:.1em;margin-bottom:7px}.ps-jfield input,.ps-jfield textarea,.ps-jfield select{width:100%;box-sizing:border-box;background:#181722;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:11px 12px;outline:none}.ps-jfield textarea{min-height:75px;resize:vertical}.ps-jfield input:focus,.ps-jfield textarea:focus,.ps-jfield select:focus{border-color:#8b5cf6}.ps-jimagebox{border:1px dashed rgba(255,255,255,.15);border-radius:16px;min-height:260px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;overflow:hidden}.ps-jimagebox img{max-width:100%;max-height:290px;border-radius:10px;display:none}.ps-jupload{cursor:pointer}.ps-jupload strong{display:block;margin-bottom:5px}.ps-jupload span{font-size:11px;color:#777286}.ps-joptions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.ps-joption{background:#181722;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}.ps-joption span{display:block;font-size:10px;color:#8d8899;margin-bottom:6px}.ps-joption select{padding:8px}.ps-jchecks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ps-jcheck{display:flex;align-items:center;gap:8px;padding:9px;background:#181722;border-radius:11px;font-size:12px;color:#d0cbd8}.ps-jcreator-foot{padding:15px 20px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.ps-jpreview-box{background:#0b0a10;border-radius:17px;padding:15px;min-height:160px}.ps-jpreview-box img{width:100%;max-height:330px;object-fit:contain;border-radius:10px;display:none}.ps-jsmall{font-size:11px;color:#777286;line-height:1.5}.ps-jmodal{position:fixed;inset:0;z-index:13000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}.ps-jmodal.open{display:flex}.ps-jmodal-card{width:min(520px,100%);background:#111019;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:22px}.ps-jmodal-card img{max-width:100%;max-height:55vh;display:block;margin:auto;border-radius:12px}.ps-jcomplete{text-align:center}.ps-jcomplete h2{font-size:30px;margin:6px 0}.ps-jcomplete .big{font-size:54px}.ps-jcomplete-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0}.ps-jcomplete-grid div{background:#181722;padding:10px;border-radius:11px}.ps-jcomplete-grid b{display:block;font-size:18px}.ps-jcomplete-grid span{font-size:9px;color:#888393;text-transform:uppercase}
+  @media(max-width:820px){.ps-game-picker-grid,.ps-jigsaw-layout,.ps-jcreator-body{grid-template-columns:1fr}.ps-jboard-wrap{min-height:66vh}.ps-jside{order:2}.ps-jcreator-window{max-height:95vh}.ps-jcreator-body{padding:15px}.ps-joptions{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.ps-game-choice{min-height:190px;padding:22px}.ps-jigsaw-shell{padding:12px 8px 35px}.ps-jboard-wrap{min-height:62vh}.ps-jcreator{padding:8px}.ps-jcreator-head{padding:16px}.ps-jcreator-foot{padding:12px}.ps-jchecks{grid-template-columns:1fr}.ps-jcomplete-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+<div id="psGamePicker" class="ps-game-picker" style="display:none">
+  <div class="ps-game-picker-head">
+    <div class="ps-game-picker-kicker">🧩 PUZZLE SUS</div>
+    <div class="ps-game-picker-title">Choose Your Puzzle</div>
+    <div class="ps-game-picker-sub">Pick a puzzle type and jump straight into the game. More puzzle modes can be added here later.</div>
+  </div>
+  <div class="ps-game-picker-grid">
+    <button class="ps-game-choice" onclick="psOpenWordSearch()"><div class="ico">🔎</div><h3>Word Search</h3><p>Find hidden words, beat the clock, and race your friends.</p><div class="go">→</div></button>
+    <button class="ps-game-choice jigsaw" onclick="psOpenJigsawHome()"><div class="ico">🧩</div><h3>Jigsaw Puzzle</h3><p>Rebuild an image by arranging, rotating and snapping the pieces together.</p><div class="go">→</div></button>
+  </div>
+</div>
+
+<div id="psJigsawHome" class="ps-game-picker" style="display:none">
+  <div class="ps-game-picker-head"><div class="ps-game-picker-kicker">🧩 JIGSAW PUZZLE</div><div class="ps-game-picker-title">Rebuild the Image</div><div class="ps-game-picker-sub">Create your own jigsaw, play saved puzzles, or open a shared puzzle link.</div></div>
+  <div class="ps-game-picker-grid">
+    <button class="ps-game-choice" onclick="psOpenJigsawCreate()"><div class="ico">✨</div><h3>Create Jigsaw</h3><p>Upload an image and configure the full puzzle experience.</p><div class="go">→</div></button>
+    <button class="ps-game-choice" onclick="psOpenJigsawSaved()"><div class="ico">💾</div><h3>Saved Jigsaws</h3><p>Continue, edit, play or share your created jigsaw puzzles.</p><div class="go">→</div></button>
+  </div>
+  <div style="text-align:center;margin-top:18px"><button class="ps-jbtn" onclick="psShowGamePicker()">← Back to Puzzle Games</button></div>
+</div>
+
+<div id="psJigsawApp" style="display:none" class="ps-jigsaw-shell">
+  <div class="ps-jigsaw-top"><div><div id="psJTitle" class="ps-jigsaw-title">Jigsaw Puzzle</div><div id="psJMeta" class="ps-jigsaw-meta"></div></div><div class="ps-jigsaw-actions"><button class="ps-jbtn" onclick="psExitJigsaw()">← Back</button><button class="ps-jbtn" onclick="psJShuffle()">🔀 Shuffle</button><button class="ps-jbtn" onclick="psJReset()">↻ Reset</button><button class="ps-jbtn" onclick="psJShare()">🔗 Share</button></div></div>
+  <div class="ps-jigsaw-layout">
+    <div id="psJBoardWrap" class="ps-jboard-wrap"><div id="psJBoard" class="ps-jboard"></div><img id="psJGhost" class="ps-jghost"></div>
+    <aside class="ps-jside">
+      <div class="ps-jstat"><div><b id="psJTime">00:00</b><span>Time</span></div><div><b id="psJScore">0</b><span>Score</span></div><div><b id="psJPieces">0/0</b><span>Pieces</span></div><div><b id="psJMoves">0</b><span>Moves</span></div></div>
+      <div class="ps-jprogress"><i id="psJProgress"></i></div><div id="psJProgressText" class="ps-jsmall">0% complete</div>
+      <div class="ps-jref"><div class="ps-jref-title">Reference Image</div><img id="psJRef" alt="Reference image" onclick="psJViewReference()"><div class="ps-jtools"><button class="ps-jbtn" onclick="psJHint()">💡 Hint</button><button class="ps-jbtn" onclick="psJToggleGhost()">👁 Preview</button></div><div id="psJHintText" class="ps-jhint-note">Hints can highlight a piece without giving away the whole solution.</div></div>
+    </aside>
+  </div>
+</div>
+
+<div id="psJCreator" class="ps-jcreator" aria-hidden="true">
+  <div class="ps-jcreator-window">
+    <div class="ps-jcreator-head"><div><h2 id="psJCreatorTitle">Create Jigsaw Puzzle</h2><p>Configure the complete puzzle before saving it.</p></div><button class="ps-jbtn" onclick="psCloseJigsawCreate()">×</button></div>
+    <div class="ps-jcreator-body">
+      <div>
+        <div class="ps-jfield"><label>PUZZLE IMAGE</label><label class="ps-jimagebox ps-jupload" for="psJImageInput"><div id="psJUploadPrompt"><strong>🖼️ Upload an image</strong><span>PNG, JPG or WebP • it will be optimized for the puzzle</span></div><img id="psJImagePreview" alt="Puzzle preview"></label><input id="psJImageInput" type="file" accept="image/png,image/jpeg,image/webp" style="display:none"></div>
+        <div class="ps-jfield"><label>PUZZLE NAME</label><input id="psJName" maxlength="70" placeholder="e.g. Super Sus Spacecrew"></div>
+        <div class="ps-jfield"><label>DESCRIPTION</label><textarea id="psJDescription" maxlength="300" placeholder="Tell players what they are rebuilding..."></textarea></div>
+        <div class="ps-jfield"><label>REFERENCE PREVIEW</label><div class="ps-jpreview-box"><img id="psJCreatorPreview" alt="Reference preview"><div id="psJPreviewEmpty" class="ps-jsmall">Your uploaded image will appear here.</div></div></div>
+      </div>
+      <div>
+        <div class="ps-joptions">
+          <div class="ps-joption"><span>PIECES</span><select id="psJPiecesSelect"><option value="9">9 — Very Easy</option><option value="16">16 — Easy</option><option value="25">25 — Easy</option><option value="36" selected>36 — Normal</option><option value="49">49 — Normal</option><option value="64">64 — Hard</option><option value="81">81 — Hard</option><option value="100">100 — Very Hard</option></select></div>
+          <div class="ps-joption"><span>PIECE STYLE</span><select id="psJStyle"><option value="classic" selected>Classic Jigsaw</option><option value="rounded">Rounded</option><option value="wavy">Wavy</option></select></div>
+          <div class="ps-joption"><span>DIFFICULTY</span><select id="psJDifficulty"><option value="auto" selected>Auto</option><option>Easy</option><option>Normal</option><option>Hard</option><option>Expert</option></select></div>
+          <div class="ps-joption"><span>SNAP</span><select id="psJSnap"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></div>
+          <div class="ps-joption"><span>TIMER</span><select id="psJTimer"><option value="countup" selected>Count Up</option><option value="off">Off</option><option value="2">Countdown — 2 min</option><option value="5">Countdown — 5 min</option><option value="10">Countdown — 10 min</option><option value="15">Countdown — 15 min</option><option value="30">Countdown — 30 min</option></select></div>
+          <div class="ps-joption"><span>WRONG PLACEMENT</span><select id="psJWrong"><option value="none" selected>No Penalty</option><option value="return">Return Piece</option><option value="penalty">Score Penalty</option></select></div>
+          <div class="ps-joption"><span>VISIBILITY</span><select id="psJVisibility"><option value="public" selected>Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></div>
+          <div class="ps-joption"><span>INITIAL LAYOUT</span><select id="psJLayout"><option value="random" selected>Random Scatter</option><option value="tray">Bottom Tray</option></select></div>
+        </div>
+        <div class="ps-jfield" style="margin-top:14px"><label>GAMEPLAY & HELPERS</label><div class="ps-jchecks"><label class="ps-jcheck"><input id="psJRotation" type="checkbox"> Allow rotation</label><label class="ps-jcheck"><input id="psJHints" type="checkbox" checked> Hints enabled</label><label class="ps-jcheck"><input id="psJReference" type="checkbox" checked> Reference image</label><label class="ps-jcheck"><input id="psJGhostToggle" type="checkbox"> Ghost image</label><label class="ps-jcheck"><input id="psJSound" type="checkbox" checked> Sound effects</label><label class="ps-jcheck"><input id="psJScoreToggle" type="checkbox" checked> Scoring</label><label class="ps-jcheck"><input id="psJAutoSave" type="checkbox" checked> Auto-save progress</label><label class="ps-jcheck"><input id="psJEdgeSort" type="checkbox" checked> Edge sort helper</label></div></div>
+        <div class="ps-jfield"><label>BOARD APPEARANCE</label><div class="ps-joptions"><div class="ps-joption"><span>BACKGROUND</span><select id="psJBg"><option value="dark" selected>Dark</option><option value="light">Light</option></select></div><div class="ps-joption"><span>PIECE OUTLINE</span><select id="psJOutline"><option value="on" selected>On</option><option value="off">Off</option></select></div></div></div>
+        <div class="ps-jsmall">Public, unlisted and private are creator visibility labels. A shared Jigsaw link contains the optimized puzzle image in the link itself, so the puzzle can be opened without a separate login.</div>
+      </div>
+    </div>
+    <div class="ps-jcreator-foot"><button class="ps-jbtn" onclick="psCloseJigsawCreate()">Cancel</button><button class="ps-jbtn primary" onclick="psCreateJigsaw()">🧩 Create & Save Jigsaw</button></div>
+  </div>
+</div>
+
+<div id="psJSavedModal" class="ps-jmodal"><div class="ps-jmodal-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2 style="margin:0">Saved Jigsaws</h2><button class="ps-jbtn" onclick="psCloseJigsawSaved()">×</button></div><div id="psJSavedList" style="margin-top:15px"></div></div></div>
+<div id="psJRefModal" class="ps-jmodal" onclick="if(event.target===this)psCloseRef()"><div class="ps-jmodal-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>Reference Image</b><button class="ps-jbtn" onclick="psCloseRef()">×</button></div><img id="psJRefLarge"></div></div>
+<div id="psJCompleteModal" class="ps-jmodal"><div class="ps-jmodal-card ps-jcomplete"><div class="big">🎉</div><h2>Puzzle Complete!</h2><p id="psJCompleteName" class="ps-jsmall"></p><div class="ps-jcomplete-grid"><div><b id="psJCScore">0</b><span>Score</span></div><div><b id="psJCTime">00:00</b><span>Time</span></div><div><b id="psJCMoves">0</b><span>Moves</span></div></div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="ps-jbtn primary" onclick="psReplayJigsaw()">Play Again</button><button class="ps-jbtn" onclick="psCloseComplete();psOpenJigsawHome()">Jigsaw Home</button></div></div></div>
+
+<script id="ps-jigsaw-script">
+(function(){
+  'use strict';
+  const KEY='puzzleSusJigsawsV1';
+  const PROGRESS='puzzleSusJigsawProgressV1';
+  let imageData=''; let editingId=null; let current=null; let pieces=[]; let groups=new Map(); let drag=null; let z=10; let timer=null; let startedAt=0; let elapsed=0; let moves=0; let pan={x:0,y:0,scale:1}; let boardSize={w:0,h:0};
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function saved(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
+  function putSaved(a){localStorage.setItem(KEY,JSON.stringify(a))}
+  function uid(){return 'JIG-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+  function showOnly(which){['psGamePicker','psJigsawHome','psJigsawApp'].forEach(id=>$(id).style.display=id===which?'block':'none')}
+  window.psShowGamePicker=function(){showOnly('psGamePicker'); document.body.classList.remove('shared-game-mode'); window.scrollTo({top:0,behavior:'smooth'})}
+  window.psOpenWordSearch=function(){
+    showOnly('none');
+    if(typeof showPage==='function') showPage('homePage');
+    const home=document.querySelector('#homePage .ps-home-shell'); if(home) home.style.display='block';
+    const picker=$('psGamePicker'); if(picker) picker.style.display='none';
+  }
+  window.psOpenJigsawHome=function(){showOnly('psJigsawHome');window.scrollTo({top:0,behavior:'smooth'})}
+  window.psExitJigsaw=function(){stopTimer();showOnly('psJigsawHome');window.scrollTo({top:0,behavior:'smooth'})}
+  window.psOpenJigsawCreate=async function(id){
+    if(!id && typeof requirePuzzleLogin==='function'){ const u=await requirePuzzleLogin(); if(!u)return; }
+    editingId=id||null; imageData='';
+    const old=id?saved().find(x=>x.id===id):null;
+    if(old){imageData=old.image; $('psJCreatorTitle').textContent='Edit Jigsaw Puzzle'; fillForm(old)} else {clearForm()}
+    $('psJCreator').classList.add('open');$('psJCreator').setAttribute('aria-hidden','false');
+  }
+  window.psCloseJigsawCreate=function(){$('psJCreator').classList.remove('open');$('psJCreator').setAttribute('aria-hidden','true')}
+  function clearForm(){['psJName','psJDescription'].forEach(id=>$(id).value='');$('psJPiecesSelect').value='36';$('psJStyle').value='classic';$('psJDifficulty').value='auto';$('psJSnap').value='normal';$('psJTimer').value='countup';$('psJWrong').value='none';$('psJVisibility').value='public';$('psJLayout').value='random';['psJRotation','psJGhostToggle'].forEach(id=>$(id).checked=false);['psJHints','psJReference','psJSound','psJScoreToggle','psJAutoSave','psJEdgeSort'].forEach(id=>$(id).checked=true);$('psJBg').value='dark';$('psJOutline').value='on';setPreview('')}
+  function fillForm(x){$('psJName').value=x.name||'';$('psJDescription').value=x.description||'';$('psJPiecesSelect').value=x.pieces||36;$('psJStyle').value=x.style||'classic';$('psJDifficulty').value=x.difficulty||'auto';$('psJSnap').value=x.snap||'normal';$('psJTimer').value=x.timer||'countup';$('psJWrong').value=x.wrong||'none';$('psJVisibility').value=x.visibility||'public';$('psJLayout').value=x.layout||'random';$('psJRotation').checked=!!x.rotation;$('psJHints').checked=x.hints!==false;$('psJReference').checked=x.reference!==false;$('psJGhostToggle').checked=!!x.ghost;$('psJSound').checked=x.sound!==false;$('psJScoreToggle').checked=x.scoring!==false;$('psJAutoSave').checked=x.autoSave!==false;$('psJEdgeSort').checked=x.edgeSort!==false;$('psJBg').value=x.bg||'dark';$('psJOutline').value=x.outline||'on';setPreview(x.image||'')}
+  function setPreview(src){$('psJImagePreview').src=src||'';$('psJImagePreview').style.display=src?'block':'none';$('psJCreatorPreview').src=src||'';$('psJCreatorPreview').style.display=src?'block':'none';$('psJPreviewEmpty').style.display=src?'none':'block';$('psJUploadPrompt').style.display=src?'none':'block'}
+  $('psJImageInput').addEventListener('change',function(){const f=this.files&&this.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Please choose a PNG, JPG or WebP image.');return}const r=new FileReader();r.onload=()=>{optimizeImage(r.result).then(src=>{imageData=src;setPreview(src)})};r.readAsDataURL(f)})
+  function optimizeImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>{const max=1100,ratio=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*ratio));c.height=Math.max(1,Math.round(im.naturalHeight*ratio));c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.78))};im.src=src})}
+  window.psCreateJigsaw=function(){
+    if(!imageData){alert('Please upload an image first.');return}
+    const name=$('psJName').value.trim()||'Untitled Jigsaw';
+    const x={id:editingId||uid(),name,description:$('psJDescription').value.trim(),image:imageData,pieces:+$('psJPiecesSelect').value,style:$('psJStyle').value,difficulty:$('psJDifficulty').value,snap:$('psJSnap').value,timer:$('psJTimer').value,wrong:$('psJWrong').value,visibility:$('psJVisibility').value,layout:$('psJLayout').value,rotation:$('psJRotation').checked,hints:$('psJHints').checked,reference:$('psJReference').checked,ghost:$('psJGhostToggle').checked,sound:$('psJSound').checked,scoring:$('psJScoreToggle').checked,autoSave:$('psJAutoSave').checked,edgeSort:$('psJEdgeSort').checked,bg:$('psJBg').value,outline:$('psJOutline').value,updatedAt:Date.now(),createdAt:editingId?(saved().find(a=>a.id===editingId)?.createdAt||Date.now()):Date.now()};
+    const arr=saved().filter(a=>a.id!==x.id);arr.unshift(x);putSaved(arr);psCloseJigsawCreate();psOpenJigsawHome();setTimeout(()=>psStart(x),50);
+  }
+  window.psOpenJigsawSaved=function(){renderSaved();$('psJSavedModal').classList.add('open')}
+  window.psCloseJigsawSaved=function(){$('psJSavedModal').classList.remove('open')}
+  function renderSaved(){const list=$('psJSavedList'),arr=saved();if(!arr.length){list.innerHTML='<div class="ps-jsmall">No saved jigsaw puzzles yet. Create your first one.</div>';return}list.innerHTML=arr.map(x=>`<div style="display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)"><img src="${x.image}" style="width:78px;height:58px;object-fit:cover;border-radius:8px"><div><b>${esc(x.name)}</b><div class="ps-jsmall">${x.pieces} pieces • ${esc(x.visibility)}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="ps-jbtn" onclick="psPlaySaved('${x.id}');psCloseJigsawSaved()">Play</button><button class="ps-jbtn" onclick="psOpenJigsawCreate('${x.id}');psCloseJigsawSaved()">Edit</button><button class="ps-jbtn" onclick="psJShareSaved('${x.id}')">Share</button><button class="ps-jbtn danger" onclick="psDeleteSaved('${x.id}')">Delete</button></div></div>`).join('')}
+  window.psPlaySaved=function(id){const x=saved().find(a=>a.id===id);if(x){psCloseJigsawSaved();psOpenJigsawHome();setTimeout(()=>psStart(x),30)}}
+  window.psDeleteSaved=function(id){if(!confirm('Delete this jigsaw puzzle?'))return;putSaved(saved().filter(x=>x.id!==id));renderSaved()}
+  function calcDims(n,ratio){let best={rows:1,cols:n,score:Infinity};for(let rows=1;rows<=n;rows++){if(n%rows)continue;const cols=n/rows;const score=Math.abs((cols/rows)-ratio);if(score<best.score)best={rows,cols,score}}return best}
+  function randEdge(){return Math.random()<.5?-1:1}
+  function edgePoints(side,sign,w,h,tab){const pts=[];const seg=.28, c=.5;const inward=sign; if(side==='top'||side==='bottom'){const y=side==='top'?0:h;const dir=side==='top'?-1:1;pts.push([0,y],[w*(.5-seg),y]);if(sign){pts.push([w*(.5-seg*.55),y+dir*tab*.15],[w*(.5-.09),y+dir*tab*.82],[w*.5,y+dir*tab],[w*(.5+.09),y+dir*tab*.82],[w*(.5+seg*.55),y+dir*tab*.15])}pts.push([w*(.5+seg),y],[w,y]);}else{const x=side==='left'?0:w;const dir=side==='left'?-1:1;pts.push([x,0],[x,h*(.5-seg)]);if(sign){pts.push([x+dir*tab*.15,h*(.5-seg*.55)],[x+dir*tab*.82,h*(.5-.09)],[x+dir*tab,h*.5],[x+dir*tab*.82,h*(.5+.09)],[x+dir*tab*.15,h*(.5+seg*.55)])}pts.push([x,h*(.5+seg)],[x,h])}return pts}
+  function makePieces(x){const ratio=1;let dims=calcDims(x.pieces,ratio);const rows=dims.rows,cols=dims.cols;const im=new Image();return new Promise(resolve=>{im.onload=()=>{const ar=im.naturalWidth/im.naturalHeight;let best={rows,cols,score:Math.abs(cols/rows-ar)};for(let r=1;r<=x.pieces;r++){if(x.pieces%r)continue;const c=x.pieces/r;const score=Math.abs(c/r-ar);if(score<best.score)best={rows:r,cols:c,score}};const R=best.rows,C=best.cols;const cellW=Math.min(520/C,520*ar/R);const cellH=cellW/ar;const tab=Math.max(9,Math.min(cellW,cellH)*.16);const edgeV=Array.from({length:R+1},()=>Array(C).fill(0));const edgeH=Array.from({length:R},()=>Array(C+1).fill(0));for(let r=1;r<R;r++)for(let c=0;c<C;c++)edgeV[r][c]=randEdge();for(let r=0;r<R;r++)for(let c=1;c<C;c++)edgeH[r][c]=randEdge();const out=[];for(let r=0;r<R;r++)for(let c=0;c<C;c++){const id=r*C+c;const pts=[];const top=r?edgeV[r][c]:0;const right=c<C-1?edgeH[r][c+1]:0;const bottom=r<R-1?edgeV[r+1][c]:0;const left=c?edgeH[r][c]:0;pts.push(...edgePoints('top',top,cellW+2*tab,cellH+2*tab,tab).map(([a,b])=>[a,b+tab]));pts.push(...edgePoints('right',right,cellW+2*tab,cellH+2*tab,tab).slice(1).map(([a,b])=>[a,b+tab]));pts.push(...edgePoints('bottom',bottom,cellW+2*tab,cellH+2*tab,tab).slice(1).reverse().map(([a,b])=>[a,b+tab]));pts.push(...edgePoints('left',left,cellW+2*tab,cellH+2*tab,tab).slice(1).reverse().map(([a,b])=>[a,b+tab]));out.push({id,row:r,col:c,w:cellW+2*tab,h:cellH+2*tab,cellW,cellH,tab,poly:pts.map(p=>p.map(v=>Math.round(v)).join(',')).join(' '),x:0,y:0,rot:0,locked:false,group:id,correctX:0,correctY:0})}resolve({rows:R,cols:C,cellW,cellH,tab,boardW:C*cellW,boardH:R*cellH,pieces:out})};im.src=x.image})}
+  function pieceTransform(p){return `translate(${p.x}px,${p.y}px) rotate(${p.rot}deg)`}
+  function layoutPieces(data){const wrap=$('psJBoardWrap');const W=wrap.clientWidth,H=wrap.clientHeight;const scale=Math.min((W-30)/data.boardW,(H-30)/data.boardH,1);boardSize={w:data.boardW*scale,h:data.boardH*scale};pan={x:(W-boardSize.w)/2,y:(H-boardSize.h)/2,scale};const pieceW=data.cellW*scale+2*data.tab*scale,pieceH=data.cellH*scale+2*data.tab*scale;pieces=data.pieces;pieces.forEach(p=>{p.w=pieceW;p.h=pieceH;p.correctX=pan.x+p.col*data.cellW*scale-data.tab*scale;p.correctY=pan.y+p.row*data.cellH*scale-data.tab*scale;p.x=p.correctX;p.y=p.correctY;p.rot=0;p.locked=false;p.group=p.id});const positions=[];if(current.layout==='tray'){const cols=Math.max(1,Math.floor(W/(pieceW+8)));pieces.forEach((p,i)=>{const c=i%cols,r=Math.floor(i/cols);positions.push({x:10+c*(pieceW+8),y:H-pieceH-10-Math.max(0,r-2)*(pieceH+4)})})}else{pieces.forEach(()=>positions.push({x:12+Math.random()*Math.max(1,W-pieceW-24),y:12+Math.random()*Math.max(1,H-pieceH-24)}))}pieces.forEach((p,i)=>{p.x=positions[i].x;p.y=positions[i].y;p.rot=current.rotation?(Math.floor(Math.random()*4)*90):0});renderPieces(data);updateStats()}
+  function renderPieces(data){const board=$('psJBoard');board.innerHTML='';board.style.background=current.bg==='light'?'#e7e3ee':'#0d0c13';$('psJGhost').src=current.image;$('psJGhost').style.display=current.ghost?'block':'none';$('psJRef').src=current.image;$('psJRef').style.display=current.reference?'block':'none';pieces.forEach(p=>{const el=document.createElement('div');el.className='ps-jpiece';el.dataset.id=p.id;el.style.width=p.w+'px';el.style.height=p.h+'px';el.style.backgroundImage=`url("${current.image}")`;const bw=data.boardW*pan.scale,bh=data.boardH*pan.scale;el.style.backgroundSize=`${bw}px ${bh}px`;el.style.backgroundPosition=`${-(p.col*data.cellW*pan.scale-pan.x+p.tab*pan.scale)}px ${-(p.row*data.cellH*pan.scale-pan.y+p.tab*pan.scale)}px`;el.style.clipPath=`polygon(${p.poly})`;if(current.outline==='off')el.style.outline='none';el.style.transform=pieceTransform(p);el.style.zIndex=++z;el.addEventListener('pointerdown',e=>beginDrag(e,p));board.appendChild(el)})}
+  function getPiece(id){return pieces.find(p=>p.id===+id||p.id===id)}
+  function beginDrag(e,p){if(p.locked)return;e.preventDefault();e.stopPropagation();const el=e.currentTarget;el.setPointerCapture?.(e.pointerId);const rect=$('psJBoard').getBoundingClientRect();drag={p,el,pid:e.pointerId,ox:e.clientX-rect.left-p.x,oy:e.clientY-rect.top-p.y,startX:p.x,startY:p.y};el.classList.add('dragging');el.style.zIndex=++z;moves++;updateStats();window.addEventListener('pointermove',onDrag);window.addEventListener('pointerup',endDrag,{once:true})}
+  function onDrag(e){if(!drag||e.pointerId!==drag.pid)return;const rect=$('psJBoard').getBoundingClientRect();const p=drag.p;const dx=e.clientX-rect.left-drag.ox-p.x,dy=e.clientY-rect.top-drag.oy-p.y;moveGroup(p.group,dx,dy);}
+  function groupIds(g){return pieces.filter(p=>p.group===g)}
+  function moveGroup(g,dx,dy){groupIds(g).forEach(p=>{p.x+=dx;p.y+=dy;const el=$(`psPiece${p.id}`);if(el)el.style.transform=pieceTransform(p);});}
+  function endDrag(e){if(!drag)return;const p=drag.p;drag.el.classList.remove('dragging');window.removeEventListener('pointermove',onDrag);if(current.rotation&&e.shiftKey)p.rot=(p.rot+90)%360;trySnap(p);drag=null;autoSaveProgress();}
+  function trySnap(p){if(p.rot%360!==0)return;const tol=current.snap==='easy'?Math.max(p.w,p.h)*.42:current.snap==='hard'?Math.max(p.w,p.h)*.13:Math.max(p.w,p.h)*.25;const dx=p.correctX-p.x,dy=p.correctY-p.y;if(Math.hypot(dx,dy)<=tol){const ids=groupIds(p.group);ids.forEach(q=>{q.x+=dx;q.y+=dy;q.locked=true;q.rot=0});const near=pieces.filter(q=>!q.locked&&q.group!==p.group&&Math.abs((q.col-p.col))<=1&&Math.abs((q.row-p.row))<=1);near.forEach(q=>{const expectedX=p.correctX+(q.col-p.col)*q.cellW*pan.scale,expectedY=p.correctY+(q.row-p.row)*q.cellH*pan.scale;if(Math.hypot(q.x-expectedX,q.y-expectedY)<Math.max(q.w,q.h)*.28){const ddx=p.x-q.x+(q.col-p.col)*q.cellW*pan.scale,ddy=p.y-q.y+(q.row-p.row)*q.cellH*pan.scale;const old=q.group;groupIds(old).forEach(a=>{a.x+=ddx;a.y+=ddy;a.group=p.group});}});if(current.sound)psBeep(720,.07);updateStats();if(pieces.every(q=>q.locked))completeGame()}}
+  function autoSaveProgress(){if(!current.autoSave)return;try{localStorage.setItem(PROGRESS+':'+current.id,JSON.stringify({pieces:pieces.map(p=>({id:p.id,x:p.x,y:p.y,rot:p.rot,locked:p.locked,group:p.group})),elapsed,moves}))}catch{}}
+  function loadProgress(){try{const d=JSON.parse(localStorage.getItem(PROGRESS+':'+current.id)||'null');if(!d)return false;const map=new Map((d.pieces||[]).map(p=>[p.id,p]));pieces.forEach(p=>{const q=map.get(p.id);if(q){Object.assign(p,q)}});elapsed=d.elapsed||0;moves=d.moves||0;return true}catch{return false}}
+  function clearProgress(){localStorage.removeItem(PROGRESS+':'+current.id)}
+  function psBeep(freq,dur){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const a=new C(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;g.gain.value=.035;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}catch{}}
+  function tick(){if(!startedAt)return;elapsed=(Date.now()-startedAt)+elapsedBase;renderTime()}
+  let elapsedBase=0;
+  function startTimer(){stopTimer();if(current.timer==='off'){renderTime();return}elapsedBase=elapsed;startedAt=Date.now();timer=setInterval(tick,250)}
+  function stopTimer(){if(timer)clearInterval(timer);timer=null;if(startedAt){elapsed=(Date.now()-startedAt)+elapsedBase;startedAt=0}}
+  function renderTime(){let s=Math.floor(elapsed/1000);let m=Math.floor(s/60);s%=60;$('psJTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+  function updateStats(){const locked=pieces.filter(p=>p.locked).length;const pct=Math.round(locked/pieces.length*100);$('psJPieces').textContent=locked+'/'+pieces.length;$('psJProgress').style.width=pct+'%';$('psJProgressText').textContent=pct+'% complete';$('psJMoves').textContent=moves;const score=current.scoring?Math.max(0,locked*100+Math.max(0,10000-Math.floor(elapsed/1000)*8)-moves*2):0;$('psJScore').textContent=score.toLocaleString();renderTime()}
+  async function psStart(x){current=x;showOnly('psJigsawApp');$('psJTitle').textContent=x.name;$('psJMeta').textContent=`${x.pieces} pieces • ${x.difficulty==='auto'?'Auto difficulty':x.difficulty} • ${x.rotation?'Rotation on':'Rotation off'}`;elapsed=0;moves=0;const data=await makePieces(x);layoutPieces(data);const resumed=x.autoSave&&loadProgress();if(resumed){renderPieces(data);updateStats()}startTimer();if(x.timer!=='countup'&&x.timer!=='off'){const limit=+x.timer*60*1000;const check=setInterval(()=>{if(elapsed>=limit){clearInterval(check);stopTimer();alert('Time is up! You can still continue or reset the puzzle.')}} ,500)}window.scrollTo({top:0,behavior:'smooth'})}
+  window.psJReset=function(){if(!current)return;if(!confirm('Reset this puzzle and start again?'))return;clearProgress();psStart(current)}
+  window.psJShuffle=function(){if(!current)return;pieces.forEach(p=>{if(!p.locked){p.x=15+Math.random()*Math.max(1,$('psJBoardWrap').clientWidth-p.w-30);p.y=15+Math.random()*Math.max(1,$('psJBoardWrap').clientHeight-p.h-30);p.rot=current.rotation?(Math.floor(Math.random()*4)*90):0}});renderPieces({boardW:boardSize.w/pan.scale,boardH:boardSize.h/pan.scale,cellW:current._cellW||boardSize.w/pan.scale,cellH:current._cellH||boardSize.h/pan.scale});updateStats()}
+  window.psJHint=function(){if(!current||!current.hints)return;const p=pieces.find(q=>!q.locked);if(!p)return;const el=$(`psPiece${p.id}`);if(el){el.classList.add('hint');setTimeout(()=>el.classList.remove('hint'),2200)}$('psJHintText').textContent=`Try the highlighted piece near row ${p.row+1}, column ${p.col+1}.`;if(current.scoring){/* hint is a light score tradeoff */} }
+  window.psJToggleGhost=function(){current.ghost=!current.ghost;$('psJGhost').style.display=current.ghost?'block':'none'}
+  window.psJViewReference=function(){if(!current.reference)return;$('psJRefLarge').src=current.image;$('psJRefModal').classList.add('open')}
+  window.psCloseRef=function(){$('psJRefModal').classList.remove('open')}
+  function completeGame(){stopTimer();clearProgress();const score=+($('psJScore').textContent.replace(/,/g,''));$('psJCScore').textContent=score.toLocaleString();$('psJCTime').textContent=$('psJTime').textContent;$('psJCMoves').textContent=moves;$('psJCompleteName').textContent=current.name;$('psJCompleteModal').classList.add('open');if(current.sound)psBeep(980,.16)}
+  window.psCloseComplete=function(){$('psJCompleteModal').classList.remove('open')}
+  window.psReplayJigsaw=function(){psCloseComplete();psStart(current)}
+  function applyIds(){pieces.forEach(p=>{const el=document.querySelector(`.ps-jpiece[data-id="${p.id}"]`);if(el)el.id='psPiece'+p.id})}
+  const oldRender=renderPieces;renderPieces=function(data){oldRender(data);applyIds()}
+  // Correctly align image background after the board is rendered.
+  const origLayout=layoutPieces;layoutPieces=function(data){data.pieces.forEach(p=>p.poly=p.poly);origLayout(data);applyIds()}
+  // Refit on resize without destroying piece positions.
+  window.addEventListener('resize',()=>{if(!current||$('psJigsawApp').style.display==='none')return;const oldScale=pan.scale;const W=$('psJBoardWrap').clientWidth,H=$('psJBoardWrap').clientHeight;const data={boardW:boardSize.w/oldScale,boardH:boardSize.h/oldScale,cellW:boardSize.w/oldScale/(current.pieces),cellH:boardSize.h/oldScale/(current.pieces)};/* Keep current layout stable; browser will naturally reflow around it. */});
+  function jigsawToShareHash(x){
+    const payload={v:1,id:x.id,name:x.name,description:x.description,image:x.image,pieces:x.pieces,style:x.style,difficulty:x.difficulty,snap:x.snap,timer:x.timer,wrong:x.wrong,rotation:x.rotation,hints:x.hints,reference:x.reference,ghost:x.ghost,sound:x.sound,scoring:x.scoring,layout:x.layout,bg:x.bg,outline:x.outline};
+    try{return '#jigsaw-data='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))))}catch{return '#jigsaw='+encodeURIComponent(x.id)}
+  }
+  function shareJigsaw(x){
+    const url=location.origin+location.pathname+jigsawToShareHash(x);
+    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(url).then(()=>alert('Jigsaw share link copied!')).catch(()=>prompt('Copy this Jigsaw link:',url))}else prompt('Copy this Jigsaw link:',url)
+  }
+  window.psJShare=function(){if(current)shareJigsaw(current)}
+  window.psJShareSaved=function(id){const x=saved().find(a=>a.id===id);if(x)shareJigsaw(x)}
+  function decodeSharedJigsaw(raw){try{const json=decodeURIComponent(raw);const str=decodeURIComponent(escape(atob(json)));const x=JSON.parse(str);return x&&x.image?x:null}catch{return null}}
+  function boot(){
+    // Replace the old Puzzle Sus home with the new game selector while keeping its existing Word Search UI intact.
+    const home=document.getElementById('homePage');if(!home)return;
+    const shell=home.querySelector('.ps-home-shell');
+    if(shell){shell.dataset.originalDisplay=shell.style.display;shell.style.display='none'}
+    const picker=$('psGamePicker');if(picker){picker.style.display='block';if(picker.parentElement!==home)home.appendChild(picker)}
+    const jh=$('psJigsawHome');if(jh&&jh.parentElement!==home)home.appendChild(jh);
+    const app=$('psJigsawApp');if(app&&app.parentElement!==home)home.appendChild(app);
+    // The top Home button should return to the puzzle selector.
+    document.querySelector('.header .nav button[onclick="showPage(\'homePage\')"]')?.setAttribute('onclick','psShowGamePicker()');
+    // Direct deep link: #jigsaw=<id> opens that puzzle. This is intentionally fragment-based so no server route is required.
+    const dataMatch=location.hash.match(/^#jigsaw-data=(.+)$/);if(dataMatch){const x=decodeSharedJigsaw(dataMatch[1]);if(x)setTimeout(()=>psStart(x),120)} else {const m=location.hash.match(/^#jigsaw=([^&]+)/);if(m){const x=saved().find(a=>a.id===decodeURIComponent(m[1]));if(x)setTimeout(()=>psStart(x),120)}}
+  }
+  boot();
+  // Keep public puzzle root as the selector. Existing shared Word Search hashes continue to be handled by the original app.
+})();
+</script>
