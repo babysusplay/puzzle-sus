@@ -3992,6 +3992,15 @@ function playPuzzle(id){
 
     if(!puzzle) return;
 
+    /*
+      Saved Puzzle -> Play should open the same
+      clean game-only window used by shared puzzles.
+      Close the Saved Puzzles window first so it
+      never remains behind the game.
+    */
+    closeSavedPuzzlesModal();
+
+    document.body.classList.add("shared-game-mode");
 
     startGame(puzzle);
 
@@ -4844,6 +4853,19 @@ function drawSelectionLine(start,end){
         svgRect.top;
 
 
+    /*
+      The SVG is stretched to the board size but
+      originally uses a 300x150 user coordinate
+      system. Set the viewBox to the real rendered
+      pixel size so diagonal lines stay exactly on
+      the cell centres instead of drifting away.
+    */
+    svg.setAttribute(
+        "viewBox",
+        `0 0 ${svgRect.width} ${svgRect.height}`
+    );
+
+
     line.setAttribute(
         "x1",
         x1
@@ -5451,6 +5473,14 @@ function exitGame(){
         () => {
 
             stopTimer();
+
+            document.body.classList.remove("shared-game-mode");
+
+            const gamePage = document.getElementById("gamePage");
+            if(gamePage){
+                gamePage.style.display = "";
+                gamePage.classList.remove("active");
+            }
 
             showPage(
                 "homePage"
