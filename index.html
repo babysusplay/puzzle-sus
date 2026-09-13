@@ -7847,72 +7847,246 @@ document.addEventListener("click", function(e){
 
 <script>
 /* =========================================================
-   PUZZLE GAME SELECTOR + JIGSAW (built on v2 base)
+   PUZZLE GAME SELECTOR + JIGSAW
+   Stable jigsaw engine: equal grid pieces, real matching tabs,
+   compressed local saves, and safe re-create handling.
 ========================================================= */
 (function(){
-  const JKEY='puzzle_sus_jigsaws_v1';
+  const JKEY='puzzle_sus_jigsaws_v2';
   let chooserMode='play', jPieces=16, jImageData='', jDrag=null, jTimer=null, jStarted=0, jMoves=0, jDone=0, jScore=0, jPuzzle=null;
   const $=id=>document.getElementById(id);
   const saved=()=>{try{return JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){return[]}};
-  const saveAll=a=>localStorage.setItem(JKEY,JSON.stringify(a));
+  const toastMsg=(m)=>{if(typeof toast==='function')toast(m);else alert(m)};
+  const saveAll=a=>{try{localStorage.setItem(JKEY,JSON.stringify(a));return true}catch(e){toastMsg('This image is too large to save. Please use a smaller image.');return false}};
+
   window.openPuzzleChooser=function(mode='play'){chooserMode=mode;$('puzzleChooser')?.classList.add('open');document.body.classList.add('modal-open')};
   window.closePuzzleChooser=function(){$('puzzleChooser')?.classList.remove('open');if(!$('jigsawCreatePage')?.classList.contains('open')&&!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open')};
-  window.choosePuzzleGame=function(type){closePuzzleChooser(); if(type==='jigsaw'){if(chooserMode==='create') openJigsawCreate(); else {const list=saved(); if(list.length) startJigsaw(list[Math.floor(Math.random()*list.length)]); else openJigsawCreate();}} else { if(chooserMode==='create') openWordCreate(); else openPublicPuzzle(); }};
-  window.openWordCreate=async function(){ if(typeof requirePuzzleLogin==='function'){const u=await requirePuzzleLogin();if(!u)return;} if(typeof openCreate==='function') openCreate(); };
-  window.setJigsawPieces=function(n){jPieces=n;document.querySelectorAll('#jigsawPieceOptions button').forEach(b=>b.classList.toggle('active',Number(b.dataset.pieces)===n));renderJPreview()};
-  function openJigsawCreate(){
-    $('jigsawCreatePage')?.classList.add('open'); $('jigsawCreatePage')?.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open');
-    $('jigsawName').value=''; $('jigsawImage').value=''; $('jigsawImageName').textContent='No image selected'; jImageData=''; renderJPreview();
-  }
-  window.openJigsawCreate=openJigsawCreate;
-  window.closeJigsawCreate=function(){$('jigsawCreatePage')?.classList.remove('open');$('jigsawCreatePage')?.setAttribute('aria-hidden','true');if(!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open')};
-  $('jigsawImage')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{jImageData=r.result;$('jigsawImageName').textContent=f.name;renderJPreview()};r.readAsDataURL(f)});
-  function renderJPreview(){const box=$('jigsawCreatePreview');if(!box)return;if(!jImageData){box.innerHTML='<div class="jigsaw-preview-empty"><div style="font-size:42px">🧩</div><strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div>';return}box.innerHTML='<img src="'+jImageData+'" alt="Puzzle preview">'}
-  window.createJigsawPuzzle=function(){
-    const name=($('jigsawName').value||'Untitled Jigsaw').trim();if(!jImageData){if(typeof toast==='function')toast('Choose an image first.');return}
-    const puzzle={id:'JIG-'+Date.now().toString(36),name,image:jImageData,pieces:jPieces,rotation:$('jigsawRotation').checked,timer:$('jigsawTimer').value,scoring:$('jigsawScoring').checked,sound:$('jigsawSound').checked,visibility:$('jigsawVisibility').value,createdAt:Date.now()};
-    const a=saved();a.unshift(puzzle);saveAll(a);closeJigsawCreate();startJigsaw(puzzle);
-  };
-  function dims(n,ratio){let best=[Math.round(Math.sqrt(n*ratio)),Math.round(Math.sqrt(n/ratio))];for(let r=1;r<=n;r++){if(n%r)continue;let c=n/r;let d=Math.abs((c/r)-ratio);if(d<Math.abs((best[1]/best[0])-ratio))best=[r,c]}return {cols:best[0],rows:best[1]}}
-  function edge(a,b){return ((a*73856093)^(b*19349663))%2===0?1:-1}
-  function sidePath(x,y,w,h,top,right,bottom,left,cols,rows){
-    const q=w*.22, r=h*.22, p=[];p.push(`M ${x} ${y}`);
-    function horiz(x1,y1,len,sign){const m=x1+len/2;return ` L ${m-q} ${y1} C ${m-q/2} ${y1} ${m-q/2} ${y1+sign*r} ${m} ${y1+sign*r} C ${m+q/2} ${y1+sign*r} ${m+q/2} ${y1} ${m+q} ${y1} L ${x1+len} ${y1}`}
-    function vert(x1,y1,len,sign){const m=y1+len/2;return ` L ${x1} ${m-q} C ${x1} ${m-q/2} ${x1+sign*r} ${m-q/2} ${x1+sign*r} ${m} C ${x1+sign*r} ${m+q/2} ${x1} ${m+q/2} ${x1} ${m+q} L ${x1} ${y1+len}`}
-    p.push(horiz(x,y,w,top));p.push(vert(x+w,y,h,right));p.push(horiz(x+w,y+h,-w,bottom));p.push(vert(x,y+h,-h,left));p.push(' Z');return p.join('')
-  }
-  function makeSvg(p){
-    const svg=$('jigsawSvg');svg.innerHTML='';const rect=$('jigsawBoard').getBoundingClientRect();const ratio=1;const d=dims(p.pieces,ratio),cols=d.cols,rows=d.rows,W=900,H=600,cw=W/cols,ch=H/rows;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');svg.appendChild(defs);
-    const img=document.createElementNS('http://www.w3.org/2000/svg','image');img.setAttribute('href',p.image);img.setAttribute('x',0);img.setAttribute('y',0);img.setAttribute('width',W);img.setAttribute('height',H);img.setAttribute('preserveAspectRatio','xMidYMid slice');img.setAttribute('opacity','.14');svg.appendChild(img);
-    const pieceW=cw*.86,pieceH=ch*.86; jDone=0;jMoves=0;jScore=0;$('jigsawMoves').textContent='0';$('jigsawProgress').textContent=`0/${p.pieces}`;$('jigsawScore').textContent='0';
-    for(let i=0;i<p.pieces;i++){const row=Math.floor(i/cols),col=i%cols;const x=col*cw+cw*.07,y=row*ch+ch*.07;let top=row? -edge(row,col):0,right=col<cols-1?edge(row,col+1):0,bottom=row<rows-1?edge(row+1,col):0,left=col? -edge(row,col):0;const path=sidePath(x,y,pieceW,pieceH,top,right,bottom,left,cols,rows);const cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath');cp.id='clip_'+i;const pa=document.createElementNS('http://www.w3.org/2000/svg','path');pa.setAttribute('d',path);cp.appendChild(pa);defs.appendChild(cp);const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.classList.add('jigsaw-piece');g.dataset.index=i;g.dataset.x=x;g.dataset.y=y;g.dataset.correctX=x;g.dataset.correctY=y;g.dataset.rot=p.rotation?String((Math.floor(Math.random()*4))*90):'0';let sx=Math.random()*(W-pieceW),sy=Math.random()*(H-pieceH);g.setAttribute('transform',`translate(${sx-x} ${sy-y}) rotate(${g.dataset.rot} ${x+pieceW/2} ${y+pieceH/2})`);const pi=document.createElementNS('http://www.w3.org/2000/svg','image');pi.setAttribute('href',p.image);pi.setAttribute('x',-col*cw);pi.setAttribute('y',-row*ch);pi.setAttribute('width',W);pi.setAttribute('height',H);pi.setAttribute('preserveAspectRatio','xMidYMid slice');pi.setAttribute('clip-path',`url(#clip_${i})`);pi.setAttribute('pointer-events','none');g.appendChild(pi);const outline=document.createElementNS('http://www.w3.org/2000/svg','path');outline.setAttribute('d',path);outline.setAttribute('fill','none');outline.setAttribute('stroke','rgba(255,255,255,.65)');outline.setAttribute('stroke-width','2');outline.setAttribute('pointer-events','none');g.appendChild(outline);svg.appendChild(g);g.addEventListener('pointerdown',startDrag)}
-  }
-  function startDrag(e){e.preventDefault();const g=e.currentTarget;const svg=$('jigsawSvg');const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=svg.getScreenCTM().inverse();const p=m.matrixTransform(pt);const t=g.getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\)/);jDrag={g,startX:p.x,startY:p.y,tx:t?+t[1]:0,ty:t?+t[2]:0};g.parentNode.appendChild(g);window.addEventListener('pointermove',drag);window.addEventListener('pointerup',endDrag,{once:true})}
-  function drag(e){if(!jDrag)return;const svg=$('jigsawSvg'),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());jDrag.g.setAttribute('transform',`translate(${jDrag.tx+p.x-jDrag.startX} ${jDrag.ty+p.y-jDrag.startY}) rotate(${jDrag.g.dataset.rot} ${+jDrag.g.dataset.x+450/jPuzzle.pieces} ${+jDrag.g.dataset.y+300/jPuzzle.pieces})`)}
-  function endDrag(){if(!jDrag)return;const g=jDrag.g;const svg=$('jigsawSvg');const bb=g.getBBox();const cx=bb.x+bb.width/2,cy=bb.y+bb.height/2,tx=+g.dataset.correctX+(+g.getAttribute('data-w')||0),ty=+g.dataset.correctY;const targetX=+g.dataset.correctX+90/jDimsCols(),targetY=+g.dataset.correctY+60/jDimsRows();const tr=g.getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\)/);const curX=tr?+tr[1]:0,curY=tr?+tr[2]:0;const dx=Math.abs(curX),dy=Math.abs(curY);jMoves++;$('jigsawMoves').textContent=jMoves;if(dx<45&&dy<45&&(!jPuzzle.rotation||g.dataset.rot==='0')){g.setAttribute('transform',`translate(0 0) rotate(0)`);g.dataset.locked='1';g.style.cursor='default';jDone++;$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;if(jPuzzle.scoring){jScore+=100; $('jigsawScore').textContent=jScore} if(jDone===jPuzzle.pieces)completeJigsaw()}window.removeEventListener('pointermove',drag);jDrag=null}
-  function jDimsCols(){return dims(jPuzzle.pieces,1).cols} function jDimsRows(){return dims(jPuzzle.pieces,1).rows}
-  function startJigsaw(p){jPuzzle=p;$('jigsawGameTitle').textContent=p.name;$('jigsawReference').src=p.image;$('jigsawGamePage').classList.add('open');$('jigsawGamePage').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');makeSvg(p);clearInterval(jTimer);jStarted=Date.now();if(p.timer!=='off')jTimer=setInterval(updateJTime,250);else $('jigsawTime').textContent='--:--'}
-  function updateJTime(){let sec=Math.floor((Date.now()-jStarted)/1000);if(jPuzzle.timer!=='up'){const limit=Number(jPuzzle.timer)*60;sec=Math.max(0,limit-sec);if(sec===0){clearInterval(jTimer);}}$('jigsawTime').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
-  function completeJigsaw(){clearInterval(jTimer);const b=$('jigsawBoard');const d=document.createElement('div');d.className='jigsaw-complete';d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div>`;b.appendChild(d)}
-  window.closeJigsawGame=function(){clearInterval(jTimer);$('jigsawGamePage')?.classList.remove('open');$('jigsawGamePage')?.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open')};
-  window.shuffleJigsaw=function(){if(jPuzzle)makeSvg(jPuzzle)};window.fitJigsaw=function(){const b=$('jigsawBoard');if(b)b.scrollIntoView({block:'center'})};
-  /* Saved Puzzles: show game chooser first, then retain the existing Word Search modal. */
-  const oldSaved=window.openSavedPuzzlesModal;
-  window.openSavedPuzzlesModal=function(){
-    const m=$('puzzleChooser'); if(!m)return oldSaved?.(); chooserMode='saved';m.classList.add('open');document.body.classList.add('modal-open');
-  };
-  const oldChoose=window.choosePuzzleGame;
   window.choosePuzzleGame=function(type){
     const mode=chooserMode; closePuzzleChooser();
-    if(mode==='saved'){
-      if(type==='word'){if(typeof oldSaved==='function')oldSaved();}
-      else {const list=saved(); if(list.length){const w=$('savedPuzzlesModal'); if(w)w.classList.remove('open'); startJigsaw(list[0]);}else openJigsawCreate();}
-      return;
+    if(type==='jigsaw'){
+      if(mode==='create'||mode==='saved') openJigsawCreate();
+      else {const list=saved(); if(list.length) startJigsaw(list[Math.floor(Math.random()*list.length)]); else openJigsawCreate();}
+    }else{
+      if(mode==='create') openWordCreate();
+      else if(mode==='saved'){ if(typeof window.openSavedPuzzlesModal==='function') window.openSavedPuzzlesModal(); }
+      else if(typeof openPublicPuzzle==='function') openPublicPuzzle();
     }
-    if(type==='jigsaw'){if(mode==='create')openJigsawCreate();else{const list=saved();if(list.length)startJigsaw(list[Math.floor(Math.random()*list.length)]);else openJigsawCreate()}}
-    else {if(mode==='create')openWordCreate();else if(typeof openPublicPuzzle==='function')openPublicPuzzle()}
   };
+  window.openWordCreate=async function(){if(typeof requirePuzzleLogin==='function'){const u=await requirePuzzleLogin();if(!u)return;}if(typeof openCreate==='function')openCreate()};
+
+  window.setJigsawPieces=function(n){
+    jPieces=n;
+    document.querySelectorAll('#jigsawPieceOptions button').forEach(b=>b.classList.toggle('active',Number(b.dataset.pieces)===n));
+  };
+
+  async function openJigsawCreate(){
+    if(typeof requirePuzzleLogin==='function'){
+      const u=await requirePuzzleLogin();
+      if(!u)return;
+    }
+    $('jigsawCreatePage')?.classList.add('open');
+    $('jigsawCreatePage')?.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+    $('jigsawName').value=''; $('jigsawImage').value=''; $('jigsawImageName').textContent='No image selected';
+    jImageData='';
+    renderJPreview();
+  }
+  window.openJigsawCreate=openJigsawCreate;
+  window.closeJigsawCreate=function(){
+    $('jigsawCreatePage')?.classList.remove('open');
+    $('jigsawCreatePage')?.setAttribute('aria-hidden','true');
+    if(!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open');
+  };
+
+  function compressImage(file){
+    return new Promise((resolve,reject)=>{
+      const r=new FileReader();
+      r.onerror=()=>reject(new Error('read'));
+      r.onload=()=>{
+        const im=new Image();
+        im.onload=()=>{
+          const max=1400, scale=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+          const c=document.createElement('canvas');
+          c.width=Math.max(1,Math.round(im.naturalWidth*scale));
+          c.height=Math.max(1,Math.round(im.naturalHeight*scale));
+          const ctx=c.getContext('2d');
+          ctx.drawImage(im,0,0,c.width,c.height);
+          resolve(c.toDataURL('image/jpeg',.82));
+        };
+        im.onerror=()=>reject(new Error('image'));
+        im.src=r.result;
+      };
+      r.readAsDataURL(file);
+    });
+  }
+
+  const imageInput=$('jigsawImage');
+  imageInput?.addEventListener('change',async e=>{
+    const f=e.target.files?.[0];
+    if(!f)return;
+    $('jigsawImageName').textContent='Processing image…';
+    try{
+      jImageData=await compressImage(f);
+      $('jigsawImageName').textContent=f.name;
+      renderJPreview();
+    }catch(err){
+      jImageData='';
+      $('jigsawImageName').textContent='Could not read image';
+      toastMsg('Could not load that image. Please choose another image.');
+    }
+  });
+
+  function renderJPreview(){
+    const box=$('jigsawCreatePreview'); if(!box)return;
+    if(!jImageData){box.innerHTML='<div class="jigsaw-preview-empty"><div style="font-size:42px">🧩</div><strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div>';return}
+    box.innerHTML='<img src="'+jImageData+'" alt="Puzzle preview">';
+  }
+
+  window.createJigsawPuzzle=function(){
+    const name=($('jigsawName').value||'Untitled Jigsaw').trim();
+    if(!jImageData){toastMsg('Choose an image first.');return;}
+    const puzzle={
+      id:'JIG-'+Date.now().toString(36),name,image:jImageData,pieces:jPieces,
+      rotation:$('jigsawRotation').checked,timer:$('jigsawTimer').value,
+      scoring:$('jigsawScoring').checked,sound:$('jigsawSound').checked,
+      visibility:$('jigsawVisibility').value,createdAt:Date.now()
+    };
+    const a=saved();
+    a.unshift(puzzle);
+    if(!saveAll(a))return;
+    closeJigsawCreate();
+    startJigsaw(puzzle);
+  };
+
+  function gridFor(n){const side=Math.round(Math.sqrt(n));return {cols:side,rows:side,total:side*side};}
+  function boundarySign(a,b){
+    let x=(a*1103515245+b*12345+67890)>>>0;
+    return (x%2===0)?1:-1;
+  }
+  function edgePathHorizontal(x,y,len,tab,sign,edge){
+    if(edge===0||!sign)return `L ${x+len} ${y}`;
+    const m=x+len/2, t=Math.min(tab,len*.18), neck=Math.min(tab*.55,len*.11);
+    return `L ${m-t} ${y} C ${m-neck} ${y} ${m-neck} ${y+sign*tab} ${m} ${y+sign*tab} C ${m+neck} ${y+sign*tab} ${m+neck} ${y} ${m+t} ${y} L ${x+len} ${y}`;
+  }
+  function edgePathVertical(x,y,len,tab,sign,edge){
+    if(edge===0||!sign)return `L ${x} ${y+len}`;
+    const m=y+len/2, t=Math.min(tab,len*.18), neck=Math.min(tab*.55,len*.11);
+    return `L ${x} ${m-t} C ${x} ${m-neck} ${x+sign*tab} ${m-neck} ${x+sign*tab} ${m} C ${x+sign*tab} ${m+neck} ${x} ${m+neck} ${x} ${m+t} L ${x} ${y+len}`;
+  }
+  function piecePath(w,h,top,right,bottom,left){
+    const tab=Math.min(w,h)*.22;
+    return 'M 0 0 '
+      +edgePathHorizontal(0,0,w,tab,top,top!==0)
+      +edgePathVertical(w,0,h,tab,right,right!==0)
+      +edgePathHorizontal(w,h,-w,tab,bottom,bottom!==0)
+      +edgePathVertical(0,h,-h,tab,left,left!==0)
+      +' Z';
+  }
+
+  function makeSvg(p){
+    const svg=$('jigsawSvg'); if(!svg)return;
+    svg.innerHTML='';
+    const {cols,rows}=gridFor(p.pieces);
+    const S=800,cw=S/cols,ch=S/rows;
+    svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
+    svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');svg.appendChild(defs);
+
+    const bg=document.createElementNS('http://www.w3.org/2000/svg','image');
+    bg.setAttribute('href',p.image);bg.setAttribute('x',0);bg.setAttribute('y',0);bg.setAttribute('width',S);bg.setAttribute('height',S);
+    bg.setAttribute('preserveAspectRatio','xMidYMid slice');bg.setAttribute('opacity','.13');bg.setAttribute('pointer-events','none');svg.appendChild(bg);
+
+    jDone=0;jMoves=0;jScore=0;
+    $('jigsawMoves').textContent='0';$('jigsawProgress').textContent=`0/${p.pieces}`;$('jigsawScore').textContent='0';
+
+    for(let i=0;i<p.pieces;i++){
+      const row=Math.floor(i/cols),col=i%cols;
+      const top=row===0?0:-boundarySign(row,col);
+      const left=col===0?0:-boundarySign(row,col);
+      const right=col===cols-1?0:boundarySign(row,col+1);
+      const bottom=row===rows-1?0:boundarySign(row+1,col);
+      const path=piecePath(cw,ch,top,right,bottom,left);
+      const cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath');
+      cp.id='jclip_'+i;cp.setAttribute('clipPathUnits','userSpaceOnUse');
+      const cpPath=document.createElementNS('http://www.w3.org/2000/svg','path');cpPath.setAttribute('d',path);cp.appendChild(cpPath);defs.appendChild(cp);
+
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.classList.add('jigsaw-piece');g.dataset.index=i;g.dataset.correctX=col*cw;g.dataset.correctY=row*ch;
+      g.dataset.rot=p.rotation?String(Math.floor(Math.random()*4)*90):'0';
+      const maxX=S-cw,maxY=S-ch;
+      const sx=Math.random()*maxX,sy=Math.random()*maxY;
+      g.setAttribute('transform',`translate(${sx} ${sy}) rotate(${g.dataset.rot} ${cw/2} ${ch/2})`);
+
+      const pi=document.createElementNS('http://www.w3.org/2000/svg','image');
+      pi.setAttribute('href',p.image);pi.setAttribute('x',-col*cw);pi.setAttribute('y',-row*ch);pi.setAttribute('width',S);pi.setAttribute('height',S);
+      pi.setAttribute('preserveAspectRatio','xMidYMid slice');pi.setAttribute('clip-path',`url(#jclip_${i})`);pi.setAttribute('pointer-events','none');
+      g.appendChild(pi);
+      const outline=document.createElementNS('http://www.w3.org/2000/svg','path');
+      outline.setAttribute('d',path);outline.setAttribute('fill','none');outline.setAttribute('stroke','rgba(255,255,255,.78)');outline.setAttribute('stroke-width','2.2');outline.setAttribute('vector-effect','non-scaling-stroke');outline.setAttribute('pointer-events','none');g.appendChild(outline);
+      svg.appendChild(g);g.addEventListener('pointerdown',startDrag);
+    }
+  }
+
+  function screenPoint(svg,e){const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+  function readTranslate(g){const m=g.getAttribute('transform')?.match(/translate\(([-\d.]+)\s+([-\d.]+)\)/);return m?[+m[1],+m[2]]:[0,0];}
+  function startDrag(e){
+    e.preventDefault();
+    const g=e.currentTarget;if(g.dataset.locked==='1')return;
+    const svg=$('jigsawSvg'),pt=screenPoint(svg,e),[tx,ty]=readTranslate(g);
+    jDrag={g,startX:pt.x,startY:pt.y,tx,ty};
+    g.parentNode.appendChild(g);g.setPointerCapture?.(e.pointerId);
+    window.addEventListener('pointermove',drag);window.addEventListener('pointerup',endDrag,{once:true});
+  }
+  function drag(e){
+    if(!jDrag)return;
+    const p=screenPoint($('jigsawSvg'),e),g=jDrag.g;
+    g.setAttribute('transform',`translate(${jDrag.tx+p.x-jDrag.startX} ${jDrag.ty+p.y-jDrag.startY}) rotate(${g.dataset.rot} ${+g.getBBox().width/2} ${+g.getBBox().height/2})`);
+  }
+  function endDrag(){
+    if(!jDrag)return;
+    const g=jDrag.g,[tx,ty]=readTranslate(g),cx=+g.dataset.correctX,cy=+g.dataset.correctY;
+    const rotOK=!jPuzzle.rotation||g.dataset.rot==='0';
+    const dx=Math.abs(tx-cx),dy=Math.abs(ty-cy),snap=Math.max(18,Math.min(34,800/Math.sqrt(jPuzzle.pieces)*.22));
+    jMoves++;$('jigsawMoves').textContent=jMoves;
+    if(dx<=snap&&dy<=snap&&rotOK){
+      g.setAttribute('transform','translate('+cx+' '+cy+') rotate(0 0 0)');g.dataset.locked='1';g.style.cursor='default';
+      jDone++;$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
+      if(jPuzzle.scoring){jScore+=100;$('jigsawScore').textContent=jScore}
+      if(jDone===jPuzzle.pieces)completeJigsaw();
+    }
+    window.removeEventListener('pointermove',drag);jDrag=null;
+  }
+
+  function startJigsaw(p){
+    jPuzzle=p;$('jigsawGameTitle').textContent=p.name;$('jigsawReference').src=p.image;
+    $('jigsawGamePage').classList.add('open');$('jigsawGamePage').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
+    makeSvg(p);clearInterval(jTimer);jStarted=Date.now();
+    if(p.timer!=='off')jTimer=setInterval(updateJTime,250);else $('jigsawTime').textContent='--:--';
+  }
+  function updateJTime(){
+    if(!jPuzzle)return;let sec=Math.floor((Date.now()-jStarted)/1000);
+    if(jPuzzle.timer!=='up'){const limit=Number(jPuzzle.timer)*60;sec=Math.max(0,limit-sec);if(sec===0)clearInterval(jTimer);}
+    $('jigsawTime').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+  }
+  function completeJigsaw(){
+    clearInterval(jTimer);const b=$('jigsawBoard');
+    const d=document.createElement('div');d.className='jigsaw-complete';
+    d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div>`;
+    b.appendChild(d);
+  }
+  window.closeJigsawGame=function(){clearInterval(jTimer);$('jigsawGamePage')?.classList.remove('open');$('jigsawGamePage')?.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open')};
+  window.shuffleJigsaw=function(){if(jPuzzle)makeSvg(jPuzzle)};
+  window.fitJigsaw=function(){const b=$('jigsawBoard');if(b)b.scrollIntoView({block:'center'})};
+
+  /* Saved Puzzles: keep the existing Word Search modal and expose Jigsaws from it. */
+  const originalSavedModal=window.openSavedPuzzlesModal;
+  window.openSavedPuzzlesModal=function(){
+    const m=$('puzzleChooser');
+    if(!m){originalSavedModal?.();return;}
+    chooserMode='saved';m.classList.add('open');document.body.classList.add('modal-open');
+  };
+
+  window.addEventListener('beforeunload',()=>clearInterval(jTimer));
 })();
 </script>
 
