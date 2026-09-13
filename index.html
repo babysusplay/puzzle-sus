@@ -2519,6 +2519,13 @@ body.shared-game-mode #gamePage .selection-arrow {
                 💾 Saved Puzzles
             </button>
 
+            <button
+                class="btn btn-secondary big-btn"
+                onclick="openPublicPuzzle()"
+            >
+                🎲 Play Puzzle
+            </button>
+
         </div>
 
     </div>
@@ -2637,6 +2644,14 @@ body.shared-game-mode #gamePage .selection-arrow {
               style="display:none;"
           >
               💾 Save Puzzle
+          </button>
+          <button
+              id="createRoomBtn"
+              class="btn btn-secondary"
+              onclick="createRoomFromForm()"
+              style="display:none;"
+          >
+              🎮 Create Room
           </button>
           <button class="btn btn-secondary" onclick="clearCreate()">Clear</button>
         </div>
@@ -6855,6 +6870,517 @@ document.addEventListener("click", function(e){
 </script>
 
 <script src="./sus-games-sso.js"></script>
+
+<!-- =========================================================
+     PUZZLE SUS - FREE REALTIME MULTIPLAYER UI
+     No puzzle/player data is stored in Supabase.
+========================================================= -->
+<div id="psRoomOverlay" class="ps-room-overlay hidden" aria-hidden="true">
+  <div class="ps-room-window">
+    <div class="ps-room-head">
+      <div>
+        <div class="ps-room-kicker">PUZZLE SUS • LIVE ROOM</div>
+        <div id="psRoomTitle" class="ps-room-title">Puzzle Room</div>
+        <div id="psRoomStatus" class="ps-room-status">Waiting for players…</div>
+      </div>
+      <button class="ps-room-close" onclick="psLeaveRoom()">×</button>
+    </div>
+    <div class="ps-room-body">
+      <div class="ps-room-main">
+        <div class="ps-room-code-row">
+          <div>
+            <div class="ps-room-label">ROOM CODE</div>
+            <div id="psRoomCode" class="ps-room-code">------</div>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="psCopyRoomLink()">🔗 Copy Link</button>
+        </div>
+        <div id="psRoomNotice" class="ps-room-notice">Share the room link with your players.</div>
+        <div class="ps-room-actions">
+          <button id="psStartRoomBtn" class="btn btn-primary" onclick="psStartRoom()">▶ Start Game</button>
+          <button class="btn btn-secondary" onclick="psCopyRoomLink()">Share Room</button>
+        </div>
+      </div>
+      <div class="ps-room-players-panel">
+        <div class="ps-room-label">PLAYERS <span id="psPlayerCount">0</span></div>
+        <div id="psPlayerList" class="ps-player-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="psNameOverlay" class="ps-room-overlay hidden" aria-hidden="true">
+  <div class="ps-name-window">
+    <div class="ps-room-kicker">PUZZLE SUS</div>
+    <div class="ps-room-title">Join Puzzle Room</div>
+    <div id="psJoinPuzzleName" class="ps-room-status">Loading room…</div>
+    <label class="ps-name-label" for="psPlayerName">Your name</label>
+    <input id="psPlayerName" maxlength="24" placeholder="Enter your name" autocomplete="nickname">
+    <div id="psJoinError" class="ps-join-error"></div>
+    <div class="ps-name-actions">
+      <button class="btn btn-secondary" onclick="psCancelJoin()">Cancel</button>
+      <button class="btn btn-primary" onclick="psJoinRoomFromOverlay()">Join Room</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.ps-room-overlay{position:fixed;inset:0;z-index:90000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(5,4,12,.82);backdrop-filter:blur(8px)}
+.ps-room-overlay.hidden{display:none!important}
+.ps-room-window,.ps-name-window{width:min(780px,96vw);max-height:calc(100vh - 36px);overflow:auto;border:1px solid #393253;border-radius:22px;background:#19162d;box-shadow:0 30px 100px rgba(0,0,0,.62);color:#f7f5fc}
+.ps-name-window{width:min(440px,94vw);padding:26px}
+.ps-room-head{display:flex;justify-content:space-between;gap:18px;padding:25px 28px 20px;border-bottom:1px solid #302b4b}
+.ps-room-kicker{font-size:11px;font-weight:1000;letter-spacing:1.4px;color:#a78bfa;margin-bottom:7px}
+.ps-room-title{font-size:28px;font-weight:1000;line-height:1.08}
+.ps-room-status{font-size:13px;color:#9d98b1;margin-top:7px;line-height:1.5}
+.ps-room-close{width:42px;height:42px;border-radius:12px;border:1px solid #393253;background:#25213b;color:#fff;font-size:25px;cursor:pointer;flex:0 0 auto}
+.ps-room-body{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;padding:22px 28px 28px}
+.ps-room-main,.ps-room-players-panel{border:1px solid #302b4b;border-radius:17px;background:#151326;padding:18px}
+.ps-room-code-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.ps-room-label{font-size:11px;color:#8f89a4;font-weight:1000;letter-spacing:1px}
+.ps-room-code{font-size:30px;font-weight:1000;letter-spacing:5px;margin-top:5px;color:#f7f5fc}
+.ps-room-notice{margin-top:18px;padding:12px 13px;border-radius:12px;background:#211d37;color:#aaa4bb;font-size:13px;line-height:1.5}
+.ps-room-actions{display:flex;gap:9px;margin-top:18px;flex-wrap:wrap}
+.ps-room-actions .btn{flex:1;min-width:140px}
+.ps-player-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:300px;overflow:auto}
+.ps-player{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 11px;border:1px solid #302b4b;border-radius:11px;background:#1d1930;font-size:13px}
+.ps-player small{color:#8f89a4}
+.ps-name-label{display:block;font-size:12px;font-weight:900;color:#d8d3e5;margin:20px 0 7px}
+.ps-name-actions{display:flex;gap:9px;margin-top:15px}.ps-name-actions .btn{flex:1}
+.ps-join-error{min-height:18px;margin-top:8px;color:#ff7180;font-size:12px;font-weight:800}
+#gamePage.ps-multiplayer-game .game-top{grid-template-columns:1fr auto}
+#gamePage.ps-multiplayer-game .game-status::after{content:' • LIVE';color:#63e6a5;font-weight:900}
+.ps-live-rank{margin-top:15px;border-top:1px solid #302b4b;padding-top:14px}
+.ps-live-rank-title{font-size:11px;font-weight:1000;letter-spacing:1px;color:#8f89a4;margin-bottom:8px}
+.ps-rank-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:12px}.ps-rank-row.me{color:#a78bfa;font-weight:900}
+@media(max-width:700px){.ps-room-body{grid-template-columns:1fr}.ps-room-head{padding:20px}.ps-room-body{padding:16px}.ps-room-title{font-size:23px}.ps-room-code{font-size:25px}}
+</style>
+
+
+<script>
+/* =========================================================
+   PUZZLE SUS — FREE MULTIPLAYER LAYER
+   - No puzzle storage in Supabase
+   - No player database rows
+   - Supabase Realtime Broadcast only
+   - Free-plan aware: one connection per browser; soft room cap 180
+   ========================================================= */
+(function(){
+  'use strict';
+
+  const PS_SUPABASE_URL = 'https://wnjsajfahsqunfesmetu.supabase.co';
+  const PS_SUPABASE_KEY = 'PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY_HERE';
+  const PS_SOFT_PLAYER_CAP = 180;
+  const PS_LOBBY_TOPIC = 'puzzle-sus-public-lobby-v1';
+  let psClient = null;
+  let psRoomChannel = null;
+  let psLobbyChannel = null;
+  let psRoom = null;
+  let psLobbyRooms = new Map();
+  let psLobbyTimer = null;
+  let psAdvertTimer = null;
+  let psJoinPayload = null;
+  let psLastStateAt = 0;
+  let psRoomPlayers = new Map();
+
+  function psEl(id){ return document.getElementById(id); }
+  function psSafeName(v){
+    const s=String(v||'').trim().replace(/[<>]/g,'').replace(/\s+/g,' ').slice(0,24);
+    return s || 'Player';
+  }
+  function psCode(){ return Math.random().toString(36).slice(2,8).toUpperCase(); }
+  function psConfigured(){ return PS_SUPABASE_KEY && !PS_SUPABASE_KEY.includes('PASTE_YOUR'); }
+  function psToast(m){ if(typeof toast==='function') toast(m); else alert(m); }
+  function psOpenOverlay(id){ const e=psEl(id); if(e){e.classList.remove('hidden');e.setAttribute('aria-hidden','false');} }
+  function psCloseOverlay(id){ const e=psEl(id); if(e){e.classList.add('hidden');e.setAttribute('aria-hidden','true');} }
+
+  function psEnsureClient(){
+    if(psClient) return psClient;
+    if(!psConfigured()){
+      psToast('Add your Supabase Publishable Key in the multiplayer config first.');
+      return null;
+    }
+    if(!window.supabase || !window.supabase.createClient){
+      psToast('Supabase Realtime library is still loading. Please try again.');
+      return null;
+    }
+    psClient=window.supabase.createClient(PS_SUPABASE_URL,PS_SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    return psClient;
+  }
+
+  function psPuzzleFromForm(){
+    const name=(psEl('quizName')?.value||'Puzzle').trim();
+    const words=(psEl('wordsInput')?.value||'').split(/\n|,/).map(w=>w.trim().toUpperCase().replace(/[^A-Z]/g,'')).filter(Boolean);
+    const unique=[...new Set(words)].slice(0,25);
+    const size=Number(psEl('gridSize')?.value||10);
+    const directionCount=Number(psEl('directionCount')?.value||8);
+    if(!name) throw new Error('Please enter a puzzle name.');
+    if(!unique.length) throw new Error('Add at least one word.');
+    if(unique.some(w=>w.length>size)) throw new Error('A word is too long for this grid.');
+    return {id:'room-'+uid(),name,words:unique,size,directionCount,seed:Math.random(),createdAt:Date.now(),updatedAt:Date.now(),shared:true};
+  }
+
+  function psEncodeRoomPuzzle(puzzle){
+    if(typeof encodeShortPuzzle==='function') return encodeShortPuzzle(puzzle);
+    const data={n:puzzle.name,w:puzzle.words,s:puzzle.size,d:puzzle.directionCount||8};
+    return btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function psDecodeRoomPuzzle(code){
+    try{
+      if(typeof decodeShortPuzzle==='function') return decodeShortPuzzle(code);
+      let x=String(code).replace(/-/g,'+').replace(/_/g,'/'); while(x.length%4)x+='=';
+      const data=JSON.parse(decodeURIComponent(escape(atob(x))));
+      return {id:'shared-'+uid(),name:data.n,words:data.w,size:Number(data.s)||10,directionCount:Number(data.d)||8,seed:Math.random(),createdAt:Date.now(),updatedAt:Date.now(),shared:true};
+    }catch(e){ return null; }
+  }
+
+  function psRoomLink(room){
+    const p=psEncodeRoomPuzzle(room.puzzle);
+    return window.location.origin+window.location.pathname+'?room='+encodeURIComponent(room.code)+'&p='+encodeURIComponent(p);
+  }
+
+  window.psCopyRoomLink=async function(){
+    if(!psRoom) return;
+    const link=psRoomLink(psRoom);
+    try{ await navigator.clipboard.writeText(link); psToast('Room link copied! 🔗'); }
+    catch(e){
+      const input=document.createElement('input'); input.value=link; document.body.appendChild(input); input.select(); document.execCommand('copy'); input.remove(); psToast('Room link copied! 🔗');
+    }
+  };
+
+  function psRenderPlayers(){
+    const list=psEl('psPlayerList'), count=psEl('psPlayerCount');
+    if(count) count.textContent=String(psRoomPlayers.size);
+    if(!list) return;
+    const rows=[...psRoomPlayers.values()].sort((a,b)=>(b.score||0)-(a.score||0));
+    list.innerHTML=rows.length?rows.map((p,i)=>`<div class="ps-player"><span>${i<3?['🥇','🥈','🥉'][i]:'👤'} ${escapeHTML(p.name)}${p.host?' <small>HOST</small>':''}</span><strong>${Number(p.score||0)}</strong></div>`).join(''):'<div class="ps-room-status">No players yet.</div>';
+  }
+
+  function psSetStatus(text){ const e=psEl('psRoomStatus'); if(e)e.textContent=text; }
+  function psSetNotice(text){ const e=psEl('psRoomNotice'); if(e)e.textContent=text; }
+
+  async function psSubscribeRoom(){
+    const client=psEnsureClient(); if(!client||!psRoom) return false;
+    if(psRoomChannel){ try{await client.removeChannel(psRoomChannel);}catch(e){} psRoomChannel=null; }
+    psRoomChannel=client.channel('puzzle-sus-room-'+psRoom.code,{config:{broadcast:{ack:true}}});
+    psRoomChannel.on('broadcast',{event:'state_request'},()=>{
+      if(psRoom.isHost) psSendRoomState();
+    });
+    psRoomChannel.on('broadcast',{event:'state'},payload=>{
+      const data=payload.payload||{};
+      if(data.roomCode!==psRoom.code) return;
+      if(data.hostId===psRoom.clientId && psRoom.isHost) return;
+      psLastStateAt=Date.now();
+      if(Array.isArray(data.players)){
+        psRoomPlayers=new Map(data.players.map(p=>[p.id,p]));
+        psRenderPlayers();
+      }
+      if(data.grid) psRoom.sharedGrid=data.grid;
+      if(data.placements) psRoom.sharedPlacements=data.placements;
+      if(data.status==='started' && data.startAt){ psHandleRemoteStart(data.startAt); }
+    });
+    psRoomChannel.on('broadcast',{event:'player_join'},payload=>{
+      const p=payload.payload?.player; if(!p||payload.payload.roomCode!==psRoom.code)return;
+      psRoomPlayers.set(p.id,p); psRenderPlayers();
+      if(psRoom.isHost) psSendRoomState();
+    });
+    psRoomChannel.on('broadcast',{event:'player_leave'},payload=>{
+      const id=payload.payload?.playerId; if(!id)return;
+      psRoomPlayers.delete(id); psRenderPlayers();
+    });
+    psRoomChannel.on('broadcast',{event:'score'},payload=>{
+      const d=payload.payload||{}; if(d.roomCode!==psRoom.code)return;
+      const p=psRoomPlayers.get(d.playerId); if(p){p.score=Number(d.score)||0;p.found=Number(d.found)||0;psRoomPlayers.set(d.playerId,p);psRenderPlayers();}
+      psRenderLiveRank();
+    });
+    psRoomChannel.on('broadcast',{event:'finish'},payload=>{
+      const d=payload.payload||{}; if(d.roomCode!==psRoom.code)return;
+      const p=psRoomPlayers.get(d.playerId); if(p){p.finished=true;p.score=Number(d.score)||0;p.time=Number(d.time)||0;psRoomPlayers.set(d.playerId,p);psRenderPlayers();psRenderLiveRank();}
+    });
+    psRoomChannel.on('broadcast',{event:'room_closed'},()=>{ psToast('The host closed the room.'); psLeaveRoom(false); });
+    const status=await new Promise(resolve=>{
+      let done=false; const finish=v=>{if(done)return;done=true;resolve(v)};
+      psRoomChannel.subscribe(st=>{ if(st==='SUBSCRIBED')finish(true); else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')finish(false); });
+      setTimeout(()=>finish(false),8000);
+    });
+    if(!status){ psToast('Could not connect to the multiplayer room.'); return false; }
+    return true;
+  }
+
+  async function psSend(event,payload){
+    if(!psRoomChannel) return false;
+    try{ await psRoomChannel.send({type:'broadcast',event,payload}); return true; }catch(e){ return false; }
+  }
+  async function psSendRoomState(){
+    if(!psRoom) return;
+    await psSend('state',{roomCode:psRoom.code,hostId:psRoom.clientId,status:psRoom.status,startAt:psRoom.startAt||0,players:[...psRoomPlayers.values()],grid:psRoom.grid||null,placements:psRoom.placements||[]});
+  }
+
+  function psRoomAdvertise(){
+    if(!psLobbyChannel||!psRoom||!psRoom.isHost||psRoom.status!=='waiting')return;
+    psLobbyChannel.send({type:'broadcast',event:'room_advert',payload:{roomCode:psRoom.code,puzzleCode:psEncodeRoomPuzzle(psRoom.puzzle),name:psRoom.puzzle.name,players:psRoomPlayers.size,capacity:PS_SOFT_PLAYER_CAP,hostId:psRoom.clientId,ts:Date.now()}});
+  }
+
+  async function psStartLobbyListener(){
+    const client=psEnsureClient(); if(!client)return false;
+    if(psLobbyChannel) return true;
+    psLobbyChannel=client.channel(PS_LOBBY_TOPIC,{config:{broadcast:{ack:false}}});
+    psLobbyChannel.on('broadcast',{event:'room_advert'},payload=>{
+      const r=payload.payload||{};
+      if(!r.roomCode||!r.puzzleCode||!r.hostId)return;
+      if(r.players>=Math.min(r.capacity||PS_SOFT_PLAYER_CAP,PS_SOFT_PLAYER_CAP))return;
+      if(Date.now()-Number(r.ts||0)>15000)return;
+      psLobbyRooms.set(r.roomCode,{...r,seen:Date.now()});
+    });
+    const ok=await new Promise(resolve=>{
+      let done=false;const finish=v=>{if(done)return;done=true;resolve(v)};
+      psLobbyChannel.subscribe(st=>{if(st==='SUBSCRIBED')finish(true);else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')finish(false)});
+      setTimeout(()=>finish(false),7000);
+    });
+    return ok;
+  }
+
+  window.createRoomFromForm=async function(){
+    try{
+      const puzzle=psPuzzleFromForm();
+      if(!psEnsureClient()) return;
+      const code=psCode();
+      const generated=generatePuzzle(puzzle.words,puzzle.size,puzzle.directionCount||8);
+      psRoom={code,puzzle,clientId:uid(),isHost:true,status:'waiting',startAt:0,name:psSafeName(localStorage.getItem('puzzle_sus_name')||'Host'),grid:generated.grid,placements:generated.placements};
+      psRoomPlayers=new Map([[psRoom.clientId,{id:psRoom.clientId,name:psRoom.name,score:0,found:0,host:true,joinedAt:Date.now()}]]);
+      const ok=await psSubscribeRoom();
+      if(!ok){psRoom=null;return;}
+      closeCreate();
+      psOpenRoomOverlay();
+      psRenderPlayers();
+      psSetStatus('Waiting for players…');
+      psSetNotice('Share the room link. No puzzle or player record is saved in Supabase.');
+      psStartLobbyListener();
+      clearInterval(psAdvertTimer); psAdvertTimer=setInterval(psRoomAdvertise,4000); psRoomAdvertise();
+    }catch(e){psToast(e.message||'Could not create room.');}
+  };
+
+  function psOpenRoomOverlay(){
+    psEl('psRoomCode').textContent=psRoom?.code||'------';
+    psEl('psRoomTitle').textContent=psRoom?.puzzle?.name||'Puzzle Room';
+    const b=psEl('psStartRoomBtn'); if(b)b.style.display=psRoom?.isHost?'inline-flex':'none';
+    psOpenOverlay('psRoomOverlay');
+  }
+
+  window.psStartRoom=async function(){
+    if(!psRoom||!psRoom.isHost||psRoom.status!=='waiting')return;
+    if(psRoomPlayers.size<1){return;}
+    psRoom.status='started';
+    psRoom.startAt=Date.now()+6500;
+    psSetStatus('Starting…'); psSetNotice('Everyone will start together.');
+    await psSend('state',{roomCode:psRoom.code,hostId:psRoom.clientId,status:'started',startAt:psRoom.startAt,players:[...psRoomPlayers.values()],grid:psRoom.grid||null,placements:psRoom.placements||[]});
+    psHandleRemoteStart(psRoom.startAt);
+    setTimeout(()=>{if(psAdvertTimer)clearInterval(psAdvertTimer);},1000);
+  };
+
+  function psHandleRemoteStart(startAt){
+    if(!psRoom||psRoom.startedHandled)return;
+    psRoom.startedHandled=true; psRoom.status='started'; psRoom.startAt=startAt;
+    psCloseOverlay('psRoomOverlay');
+    startGame(psRoom.puzzle);
+    if(psRoom.sharedGrid){ game.grid=psRoom.sharedGrid; game.placements=psRoom.sharedPlacements||[]; renderBoard(); renderWordList(); updateProgress(); }
+    else if(psRoom.grid){ game.grid=psRoom.grid; game.placements=psRoom.placements||[]; renderBoard(); renderWordList(); updateProgress(); }
+    game.multiplayer={roomCode:psRoom.code,clientId:psRoom.clientId,isHost:psRoom.isHost,startAt};
+    game.playerId=psRoomPlayers.get(psRoom.clientId)?.name||psRoom.name||getUserId();
+    document.getElementById('gamePlayer').textContent='Player: '+game.playerId;
+    document.getElementById('playerId').textContent=game.playerId;
+    document.getElementById('gamePage').classList.add('ps-multiplayer-game');
+    stopTimer();
+    psStartSynchronizedCountdown(startAt);
+  }
+
+  function psStartSynchronizedCountdown(startAt){
+    const overlay=psEl('puzzleCountdown'), number=psEl('countdownNumber');
+    if(!overlay||!number){psStartTimerAt(startAt);return;}
+    overlay.classList.remove('hidden');
+    const tick=()=>{
+      const ms=startAt-Date.now();
+      if(ms<=0){overlay.classList.add('hidden');psStartTimerAt(startAt);return;}
+      const n=Math.max(1,Math.ceil(ms/1000));
+      number.textContent=n;
+      number.style.animation='none';void number.offsetWidth;number.style.animation='countdownPop .28s ease';
+      game.countdownInterval=setTimeout(tick,Math.min(250,ms));
+    };
+    tick();
+  }
+  function psStartTimerAt(startAt){
+    if(!game)return;
+    game.startTime=startAt;
+    game.elapsed=0;
+    clearInterval(game.timerInterval);
+    game.timerInterval=setInterval(()=>{
+      game.elapsed=Math.max(0,Date.now()-startAt);
+      const t=psEl('timer'); if(t)t.textContent=formatTime(game.elapsed);
+    },30);
+  }
+
+  function psBroadcastScore(){
+    if(!game?.multiplayer||!psRoomChannel)return;
+    psSend('score',{roomCode:game.multiplayer.roomCode,playerId:psRoom.clientId,score:game.score,found:game.found.size});
+  }
+  function psBroadcastFinish(){
+    if(!game?.multiplayer||!psRoomChannel)return;
+    psSend('finish',{roomCode:game.multiplayer.roomCode,playerId:psRoom.clientId,score:game.score,time:game.elapsed});
+  }
+
+  function psRenderLiveRank(){
+    if(!game?.multiplayer)return;
+    let panel=document.getElementById('psLiveRank');
+    const side=document.querySelector('#gamePage .side-panel'); if(!side)return;
+    if(!panel){
+      panel=document.createElement('div');panel.id='psLiveRank';panel.className='ps-live-rank';side.appendChild(panel);
+    }
+    const rows=[...psRoomPlayers.values()].sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,12);
+    panel.innerHTML='<div class="ps-live-rank-title">LIVE RANKING</div>'+rows.map((p,i)=>`<div class="ps-rank-row ${p.id===psRoom.clientId?'me':''}"><span>${i+1}. ${escapeHTML(p.name)}</span><strong>${Number(p.score||0)}</strong></div>`).join('');
+  }
+
+  const originalFoundWord=window.foundWord;
+  window.foundWord=function(word,cells){
+    if(game?.multiplayer && game.found?.has(word))return;
+    const r=originalFoundWord.apply(this,arguments);
+    psBroadcastScore(); psRenderLiveRank();
+    return r;
+  };
+
+  const originalCompleteGame=window.completeGame;
+  window.completeGame=function(){
+    const r=originalCompleteGame.apply(this,arguments);
+    psBroadcastFinish(); psRenderLiveRank();
+    return r;
+  };
+
+  window.psLeaveRoom=async function(closeOverlay=true){
+    if(psRoomChannel && psRoom){
+      await psSend('player_leave',{roomCode:psRoom.code,playerId:psRoom.clientId});
+      if(psRoom.isHost) await psSend('room_closed',{roomCode:psRoom.code});
+    }
+    clearInterval(psAdvertTimer); psAdvertTimer=null;
+    if(psRoomChannel&&psClient){try{await psClient.removeChannel(psRoomChannel);}catch(e){}}
+    psRoomChannel=null; psRoom=null; psRoomPlayers=new Map(); psJoinPayload=null;
+    document.getElementById('gamePage')?.classList.remove('ps-multiplayer-game');
+    if(closeOverlay)psCloseOverlay('psRoomOverlay');
+    stopTimer();
+  };
+
+  window.psCancelJoin=function(){ psJoinPayload=null; psCloseOverlay('psNameOverlay'); showPage('homePage'); };
+
+  window.psJoinRoomFromOverlay=async function(){
+    const payload=psJoinPayload; if(!payload)return;
+    const name=psSafeName(psEl('psPlayerName')?.value);
+    if(name==='Player'){psEl('psJoinError').textContent='Please enter your name.';return;}
+    localStorage.setItem('puzzle_sus_name',name);
+    const client=psEnsureClient(); if(!client)return;
+    const code=payload.roomCode;
+    const puzzle=psDecodeRoomPuzzle(payload.puzzleCode);
+    if(!puzzle){psEl('psJoinError').textContent='This room link is invalid.';return;}
+    psRoom={code,puzzle,clientId:uid(),isHost:false,status:'waiting',startAt:0,name};
+    psRoomPlayers=new Map();
+    const ok=await psSubscribeRoom();
+    if(!ok){psEl('psJoinError').textContent='Could not connect to this room.';return;}
+    psCloseOverlay('psNameOverlay');
+    psOpenRoomOverlay();
+    psSetStatus('Joining room…'); psSetNotice('Waiting for the host to start the game.');
+    psRoomPlayers.set(psRoom.clientId,{id:psRoom.clientId,name,score:0,found:0,host:false,joinedAt:Date.now()});
+    psRenderPlayers();
+    await psSend('player_join',{roomCode:code,player:{id:psRoom.clientId,name,score:0,found:0,host:false,joinedAt:Date.now()}});
+    await psSend('state_request',{roomCode:code,playerId:psRoom.clientId});
+    setTimeout(()=>{if(psRoom && psRoom.status==='waiting')psSetStatus('Waiting for host…');},800);
+  };
+
+  function psOpenJoinPayload(payload){
+    psJoinPayload=payload;
+    psEl('psJoinPuzzleName').textContent=payload.puzzleName?('Puzzle: '+payload.puzzleName):'Enter your name to join.';
+    psEl('psPlayerName').value=localStorage.getItem('puzzle_sus_name')||'';
+    psEl('psJoinError').textContent='';
+    psOpenOverlay('psNameOverlay');
+    setTimeout(()=>psEl('psPlayerName')?.focus(),50);
+  }
+
+  window.openPublicPuzzle=async function(){
+    if(!psEnsureClient())return;
+    const ok=await psStartLobbyListener();
+    if(!ok){psToast('Could not connect to the public puzzle lobby.');return;}
+    psSetStatus('');
+    const now=Date.now();
+    for(const [k,v] of psLobbyRooms){if(now-v.seen>15000)psLobbyRooms.delete(k);}
+    const rooms=[...psLobbyRooms.values()].filter(r=>r.players<Math.min(r.capacity||PS_SOFT_PLAYER_CAP,PS_SOFT_PLAYER_CAP));
+    if(!rooms.length){
+      psToast('No public puzzle is waiting right now. Try again in a moment.');
+      return;
+    }
+    const room=rooms[Math.floor(Math.random()*rooms.length)];
+    psOpenJoinPayload({roomCode:room.roomCode,puzzleCode:room.puzzleCode,puzzleName:room.name});
+  };
+
+  function psCheckRoomURL(){
+    try{
+      const params=new URLSearchParams(window.location.search);
+      const roomCode=params.get('room'), p=params.get('p');
+      if(!roomCode||!p)return;
+      const puzzle=psDecodeRoomPuzzle(p); if(!puzzle)return;
+      /* The old startup may have opened the puzzle solo. Stop it and replace with room join. */
+      stopTimer();
+      psOpenJoinPayload({roomCode,puzzleCode:p,puzzleName:puzzle.name});
+      history.replaceState(null,'',window.location.pathname);
+    }catch(e){console.warn('Puzzle Sus room URL:',e);}
+  }
+
+  /* Show Create Room once a valid preview exists. */
+  const oldGenerate=window.generateCreatePreview;
+  if(typeof oldGenerate==='function'){
+    window.generateCreatePreview=function(){
+      const r=oldGenerate.apply(this,arguments);
+      const b=psEl('createRoomBtn'); if(b)b.style.display='inline-flex';
+      return r;
+    };
+  }
+
+  /* Add a multiplayer room button to every saved puzzle without changing the existing controls. */
+  const oldRenderSaved=window.renderSavedPuzzles;
+  if(typeof oldRenderSaved==='function'){
+    window.renderSavedPuzzles=function(){
+      const r=oldRenderSaved.apply(this,arguments);
+      const grid=psEl('quizGrid'); if(!grid)return r;
+      grid.querySelectorAll('.quiz-card').forEach(card=>{
+        const share=card.querySelector('[onclick^="sharePuzzle("]');
+        if(!share||card.querySelector('.ps-room-card-btn'))return;
+        const m=share.getAttribute('onclick').match(/sharePuzzle\('([^']+)'\)/); if(!m)return;
+        const b=document.createElement('button'); b.className='btn btn-secondary btn-small ps-room-card-btn'; b.textContent='🎮 Room'; b.onclick=()=>window.startSavedRoom(m[1]); share.parentElement.appendChild(b);
+      });
+      return r;
+    };
+  }
+  window.startSavedRoom=async function(id){
+    const puzzle=(puzzles||[]).find(p=>p.id===id); if(!puzzle)return;
+    if(!psEnsureClient())return;
+    psRoom={code:psCode(),puzzle,isHost:true,clientId:uid(),status:'waiting',startAt:0,name:psSafeName(localStorage.getItem('puzzle_sus_name')||'Host')};
+    psRoomPlayers=new Map([[psRoom.clientId,{id:psRoom.clientId,name:psRoom.name,score:0,found:0,host:true,joinedAt:Date.now()}]]);
+    const ok=await psSubscribeRoom(); if(!ok){psRoom=null;return;}
+    psOpenRoomOverlay(); psRenderPlayers(); psSetStatus('Waiting for players…');
+    clearInterval(psAdvertTimer);psAdvertTimer=setInterval(psRoomAdvertise,4000);psRoomAdvertise();
+  };
+
+  /* Inject Supabase client without requiring a second file. */
+  if(!document.querySelector('script[data-puzzle-sus-supabase]')){
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    sc.dataset.puzzleSusSupabase='1';
+    sc.onload=()=>{ if(psConfigured()) console.log('Puzzle Sus Realtime ready.'); };
+    document.head.appendChild(sc);
+  }
+
+  window.addEventListener('beforeunload',()=>{ if(psRoomChannel&&psRoom) psSend('player_leave',{roomCode:psRoom.code,playerId:psRoom.clientId}); });
+  document.addEventListener('DOMContentLoaded',()=>{
+    const b=psEl('createRoomBtn'); if(b)b.style.display='none';
+    setTimeout(psCheckRoomURL,250);
+  });
+})();
+</script>
+
 </body>
 </html>
 <script>
