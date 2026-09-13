@@ -7163,6 +7163,53 @@ document.addEventListener("click", function(e){
   .ps-hero-copy .home-subtitle{font-size:13px}
 }
 
+/* =========================================================
+   HOME V2 — COMPACT HERO / NO EMPTY BANNER SPACE
+   ========================================================= */
+.ps-home-redesign{
+  min-height:calc(100vh - 68px);
+  padding:26px 0 54px !important;
+}
+.ps-home-shell{
+  max-width:1080px;
+}
+.ps-hero-copy{
+  margin-bottom:24px;
+}
+.ps-hero-kicker{
+  margin-bottom:9px;
+}
+.ps-hero-copy .home-title{
+  font-size:clamp(48px,7vw,74px);
+  line-height:.95;
+  margin:0;
+}
+.ps-hero-copy .home-subtitle{
+  margin:10px auto 0;
+  font-size:15px;
+}
+.ps-play-card{
+  min-height:138px;
+  padding:24px 28px;
+}
+.ps-home-actions{
+  margin-top:11px;
+}
+.ps-how-section{
+  margin-top:30px;
+}
+.ps-how-grid{
+  gap:12px;
+}
+@media(max-width:700px){
+  .ps-home-redesign{padding:20px 0 38px !important}
+  .ps-hero-copy{margin-bottom:18px}
+  .ps-hero-kicker{margin-bottom:7px}
+  .ps-hero-copy .home-title{font-size:44px}
+  .ps-hero-copy .home-subtitle{margin-top:8px}
+  .ps-play-card{min-height:120px;padding:18px}
+  .ps-how-section{margin-top:24px}
+}
 </style>
 
 
