@@ -8037,8 +8037,11 @@ document.addEventListener("click", function(e){
 
     for(let i=0;i<p.pieces;i++){
       const row=Math.floor(i/cols),col=i%cols;
-      const top=row===0?0:-boundarySign(row,col);
-      const left=col===0?0:-boundarySign(row,col);
+      // Every shared edge uses ONE global tab direction.
+      // The neighbouring piece reuses the exact same edge geometry in reverse,
+      // so tabs/slots physically match when pieces are assembled.
+      const top=row===0?0:boundarySign(row,col);
+      const left=col===0?0:boundarySign(row,col);
       const right=col===cols-1?0:boundarySign(row,col+1);
       const bottom=row===rows-1?0:boundarySign(row+1,col);
       const path=piecePath(cw,ch,top,right,bottom,left);
