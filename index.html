@@ -2037,6 +2037,15 @@ body.shared-game-mode .container{
     }
 }
 
+
+/* ========================= JIGSAW / GAME CHOOSER ========================= */
+.puzzle-chooser{position:fixed;inset:0;z-index:7000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(5,4,12,.82);backdrop-filter:blur(10px)}
+.puzzle-chooser.open{display:flex}.puzzle-chooser-backdrop{position:absolute;inset:0}.puzzle-chooser-window{position:relative;width:min(620px,96vw);padding:30px;border-radius:24px;background:#19162d;border:1px solid #302b4b;box-shadow:0 30px 100px rgba(0,0,0,.6)}
+.puzzle-chooser-close,.jigsaw-x{border:1px solid #393253;background:#25213b;color:#eeeaf8;border-radius:12px;width:42px;height:42px;font-size:25px;cursor:pointer}.puzzle-chooser-close{position:absolute;right:20px;top:20px}.puzzle-chooser-kicker,.jigsaw-kicker{font-size:11px;font-weight:950;letter-spacing:1.4px;color:#a78bfa}.puzzle-chooser-window h2{font-size:30px;margin:8px 0 5px}.puzzle-chooser-window>p{color:#9d98b1;margin-bottom:20px}.puzzle-chooser-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.puzzle-game-card{display:flex;align-items:center;gap:13px;text-align:left;padding:18px;border-radius:18px;border:1px solid #302b4b;background:#211d37;color:#f5f3fb;cursor:pointer}.puzzle-game-card:hover{border-color:#8b5cf6;transform:translateY(-1px)}.puzzle-game-card.jigsaw:hover{border-color:#ec4899}.puzzle-game-icon{font-size:31px}.puzzle-game-card span:nth-child(2){display:flex;flex-direction:column;gap:4px;flex:1}.puzzle-game-card strong{font-size:15px}.puzzle-game-card small{color:#9d98b1}.puzzle-game-card b{font-size:20px;color:#a78bfa}
+.jigsaw-page{position:fixed;inset:0;z-index:6900;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(5,4,12,.86);backdrop-filter:blur(9px)}.jigsaw-page.open{display:flex}.jigsaw-modal-window,.jigsaw-game-window{position:relative;width:min(1080px,97vw);max-height:94vh;overflow:auto;background:#19162d;border:1px solid #302b4b;border-radius:24px;box-shadow:0 30px 100px rgba(0,0,0,.62)}.jigsaw-modal-head,.jigsaw-game-head{display:flex;justify-content:space-between;gap:20px;padding:24px 28px;border-bottom:1px solid #302b4b}.jigsaw-modal-head h2,.jigsaw-game-head h2{margin:5px 0;font-size:28px}.jigsaw-modal-head p{color:#9d98b1}.jigsaw-create-body{display:grid;grid-template-columns:360px 1fr;gap:22px;padding:24px 28px 28px}.jigsaw-form label{display:block;color:#d8d3e5;font-size:13px;font-weight:900;margin:0 0 7px}.jigsaw-form>label:not(.jigsaw-upload){margin-top:17px}.jigsaw-upload{min-height:95px;border:1px dashed #51476e;border-radius:16px;background:#211d37;display:flex!important;align-items:center;justify-content:center;flex-direction:column;cursor:pointer}.jigsaw-upload input{display:none}.jigsaw-upload span{font-weight:900;color:#eeeaf8}.jigsaw-upload small{color:#8f89a4;margin-top:5px;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.jigsaw-form input:not([type=checkbox]){width:100%}.piece-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.piece-options button{height:44px;border:1px solid #302b4b;border-radius:11px;background:#211d37;color:#c8c2d7;font-weight:900}.piece-options button.active{background:#35285c;border-color:#8b5cf6;color:#fff}.jigsaw-simple-row{margin-top:13px}.switch-row{display:flex!important;align-items:center;justify-content:space-between;margin:0!important}.switch-row select{width:145px!important;padding:9px 10px}.switch-row input{display:none}.switch-row i{width:44px;height:24px;border-radius:99px;background:#302b4b;position:relative;display:inline-block}.switch-row i:after{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;border-radius:50%;background:#9d98b1;transition:.2s}.switch-row input:checked+i{background:#8b5cf6}.switch-row input:checked+i:after{left:23px;background:white}.jigsaw-create-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}.jigsaw-create-preview{min-height:540px;border-radius:20px;background:radial-gradient(circle at 50% 35%,rgba(139,92,246,.10),transparent 45%),#12101f;border:1px solid #302b4b;display:flex;align-items:center;justify-content:center;overflow:hidden}.jigsaw-preview-empty{display:flex;flex-direction:column;align-items:center;gap:8px;color:#8f89a4}.jigsaw-preview-empty:first-line{font-size:42px}.jigsaw-preview-empty strong{color:#c8c2d7}.jigsaw-preview-empty span{font-size:12px}.jigsaw-create-preview img{max-width:92%;max-height:500px;border-radius:14px;object-fit:contain;box-shadow:0 15px 40px rgba(0,0,0,.35)}
+.jigsaw-game-window{width:min(1200px,97vw)}.jigsaw-game-head{align-items:center}.jigsaw-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:14px 22px}.jigsaw-stats>div{background:#211d37;border:1px solid #302b4b;border-radius:13px;padding:10px 13px}.jigsaw-stats small{display:block;color:#8f89a4;font-size:9px;font-weight:950;letter-spacing:1px}.jigsaw-stats b{display:block;margin-top:3px;font-size:18px}.jigsaw-board-wrap{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;padding:0 22px 14px}.jigsaw-reference{align-self:start;background:#211d37;border:1px solid #302b4b;border-radius:15px;padding:10px}.jigsaw-reference>div{font-size:9px;color:#9d98b1;font-weight:950;letter-spacing:1px;margin-bottom:8px}.jigsaw-reference img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;opacity:.72}.jigsaw-board{position:relative;min-height:520px;border-radius:18px;overflow:hidden;background:radial-gradient(circle at 50% 50%,rgba(139,92,246,.07),transparent 60%),#100e1b;border:1px solid #302b4b;touch-action:none}.jigsaw-board svg{width:100%;height:100%;min-height:520px;display:block}.jigsaw-piece{cursor:grab}.jigsaw-piece:active{cursor:grabbing}.jigsaw-game-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 22px 20px}.jigsaw-complete{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,7,17,.75);backdrop-filter:blur(6px);z-index:50}.jigsaw-complete-card{background:#19162d;border:1px solid #443b63;border-radius:22px;padding:28px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.5)}.jigsaw-complete-card h3{font-size:28px}.jigsaw-complete-card p{color:#9d98b1;margin:8px 0 18px}
+@media(max-width:760px){.puzzle-chooser-grid{grid-template-columns:1fr}.jigsaw-create-body{grid-template-columns:1fr}.jigsaw-create-preview{min-height:280px;order:-1}.jigsaw-board-wrap{grid-template-columns:1fr}.jigsaw-reference{display:flex;align-items:center;gap:10px}.jigsaw-reference img{width:78px;height:58px}.jigsaw-board,.jigsaw-board svg{min-height:390px}.jigsaw-stats{grid-template-columns:repeat(2,1fr)}.jigsaw-modal-head,.jigsaw-game-head{padding:18px}.jigsaw-create-body{padding:18px}.jigsaw-game-actions{padding:0 18px 18px}}
+
 </style>
 
 <style id="shared-game-final-overrides">
@@ -2527,44 +2536,17 @@ body.shared-game-mode #gamePage .selection-arrow {
   text-shadow:0 0 22px rgba(139,92,246,.28);
 }
 </style>
-<style id="ps-jigsaw-clean-v3">
-  /* Clean creator: Puzzle Sus own visual language, minimal controls. */
-  .ps-jcreator-clean{max-width:920px!important;border-radius:24px!important;overflow:hidden}
-  .ps-jcreator-kicker{font-size:11px;letter-spacing:.16em;font-weight:900;color:#a78bfa;margin-bottom:5px}
-  .ps-jcreator-clean .ps-jcreator-head{padding:22px 24px!important}
-  .ps-jcreator-clean .ps-jcreator-head h2{font-size:24px!important;margin:0!important}
-  .ps-jcreator-clean .ps-jcreator-head p{font-size:13px!important;margin:5px 0 0!important}
-  .ps-jcreator-clean-body{display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr)!important;gap:22px!important;padding:22px 24px!important}
-  .ps-jcreator-preview-col,.ps-jcreator-settings-col{min-width:0}
-  .ps-jimagebox-clean{min-height:270px!important;border-radius:18px!important;border:1px dashed rgba(167,139,250,.35)!important;background:rgba(255,255,255,.025)!important}
-  .ps-jimagebox-clean img{max-height:270px!important;border-radius:15px!important}
-  .ps-joptional{font-size:9px!important;letter-spacing:.06em;color:#777181;margin-left:5px}
-  .ps-jsetting-card{padding:14px 15px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:17px;margin-bottom:12px}
-  .ps-jsetting-title{font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#c9c1d8;margin-bottom:5px}
-  .ps-jclean-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 2px;border-bottom:1px solid rgba(255,255,255,.055)}
-  .ps-jclean-row:last-child{border-bottom:0}
-  .ps-jclean-row>label:first-child{font-size:13px;color:#ddd7e7;font-weight:700}
-  .ps-jclean-row select{min-width:132px!important;width:auto!important;padding:8px 30px 8px 10px!important;border-radius:10px!important;background:#171521!important}
-  .ps-switch{display:inline-flex!important;align-items:center;gap:7px;cursor:pointer!important}
-  .ps-switch input{display:none!important}
-  .ps-switch span{width:38px;height:22px;border-radius:999px;background:#302c3b;position:relative;transition:.18s}
-  .ps-switch span:after{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;border-radius:50%;background:#aaa3b8;transition:.18s}
-  .ps-switch input:checked+span{background:#7c3aed}
-  .ps-switch input:checked+span:after{transform:translateX(16px);background:#fff}
-  .ps-switch b{font-size:11px;color:#9e97a9;min-width:19px}
-  .ps-switch input:checked+span+b{color:#c4b5fd}
-  .ps-jcreator-note{padding:12px 14px;border-radius:13px;background:rgba(124,58,237,.08);border:1px solid rgba(167,139,250,.12);font-size:11px;line-height:1.5;color:#a9a1b4}
-  .ps-jcreator-clean-foot{padding:16px 24px!important;background:rgba(0,0,0,.12);border-top:1px solid rgba(255,255,255,.06)}
-  .ps-jref-min{margin-top:12px;padding:11px 12px;border:1px solid rgba(255,255,255,.06);border-radius:13px;color:#a9a1b4;font-size:11px;line-height:1.4}
-  .ps-jref-min span{margin-left:3px}
-  .ps-jghost{display:block!important;opacity:.10!important;max-width:86%!important;max-height:86%!important;border-radius:12px;filter:saturate(.85)}
-  .ps-jpiece{filter:drop-shadow(0 5px 7px rgba(0,0,0,.32))!important}
-  .ps-jpiece:hover{filter:drop-shadow(0 8px 12px rgba(139,92,246,.20))!important}
-  @media(max-width:760px){
-    .ps-jcreator-clean-body{grid-template-columns:1fr!important}
-    .ps-jimagebox-clean{min-height:210px!important}
-    .ps-jimagebox-clean img{max-height:210px!important}
-  }
+<style id="main-puzzle-selector-css">
+.puzzle-selector-home{min-height:calc(100vh - 80px);display:flex;align-items:center}
+.main-puzzle-choice{width:min(760px,100%);margin:26px auto 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.main-puzzle-card{appearance:none;border:1px solid #302b4b;background:#19162d;color:#f7f3ff;border-radius:22px;padding:24px 20px;display:flex;align-items:center;gap:15px;text-align:left;cursor:pointer;box-shadow:0 18px 50px rgba(0,0,0,.25);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.main-puzzle-card:hover{transform:translateY(-3px);border-color:#8b5cf6;box-shadow:0 22px 60px rgba(0,0,0,.35)}
+.main-puzzle-icon{width:54px;height:54px;display:grid;place-items:center;border-radius:16px;background:#25213b;font-size:27px;flex:0 0 54px}
+.main-puzzle-copy{min-width:0;display:flex;flex-direction:column;gap:5px}
+.main-puzzle-copy strong{font-size:19px;font-weight:900}
+.main-puzzle-copy small{font-size:12px;color:#9d98b1;line-height:1.35}
+.main-puzzle-arrow{margin-left:auto;font-size:24px;color:#a78bfa}
+@media(max-width:700px){.main-puzzle-choice{grid-template-columns:1fr;gap:12px}.puzzle-selector-home{align-items:flex-start;padding-top:45px}.main-puzzle-card{padding:20px}}
 </style>
 </head>
 
@@ -2599,7 +2581,37 @@ body.shared-game-mode #gamePage .selection-arrow {
      HOME
 ========================= -->
 
-<section id="homePage" class="page active home ps-home-redesign">
+<section id="homePage" class="page active home puzzle-selector-home">
+  <div class="container ps-home-shell">
+    <div class="ps-hero-copy">
+      <div class="ps-hero-kicker"><span>🧩</span> PUZZLE SUS</div>
+      <h1 class="home-title"><span class="gradient">CHOOSE YOUR PUZZLE</span></h1>
+      <p class="home-subtitle">Pick a game and start playing.</p>
+    </div>
+
+    <div class="main-puzzle-choice">
+      <button class="main-puzzle-card word" type="button" onclick="selectMainPuzzle('word')">
+        <span class="main-puzzle-icon">🔎</span>
+        <span class="main-puzzle-copy">
+          <strong>Word Search</strong>
+          <small>Find hidden words in the grid</small>
+        </span>
+        <span class="main-puzzle-arrow">→</span>
+      </button>
+
+      <button class="main-puzzle-card jigsaw" type="button" onclick="selectMainPuzzle('jigsaw')">
+        <span class="main-puzzle-icon">🧩</span>
+        <span class="main-puzzle-copy">
+          <strong>Jigsaw Puzzle</strong>
+          <small>Rebuild the image piece by piece</small>
+        </span>
+        <span class="main-puzzle-arrow">→</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="wordSearchHomePage" class="page home ps-home-redesign">
 
     <div class="container ps-home-shell">
         <div class="ps-hero-copy">
@@ -2612,7 +2624,7 @@ body.shared-game-mode #gamePage .selection-arrow {
             </p>
         </div>
 
-        <div class="ps-play-card" onclick="openPublicPuzzle()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openPublicPuzzle()">
+        <div class="ps-play-card" onclick="openPuzzleChooser('play')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openPuzzleChooser('play')">
             <div class="ps-play-icon">🎲</div>
             <div class="ps-play-content">
                 <div class="ps-play-label">PLAY PUZZLE</div>
@@ -2623,7 +2635,7 @@ body.shared-game-mode #gamePage .selection-arrow {
         </div>
 
         <div class="ps-home-actions">
-            <button class="ps-action-card" onclick="openCreate()">
+            <button class="ps-action-card" onclick="openPuzzleChooser('create')">
                 <span class="ps-action-icon">🧩</span>
                 <span><strong>Create Puzzle</strong><small>Make your own puzzle</small></span>
                 <b>→</b>
@@ -2648,6 +2660,27 @@ body.shared-game-mode #gamePage .selection-arrow {
 
 </section>
 
+
+<!-- =========================
+     PUZZLE GAME CHOOSER
+========================= -->
+<div id="puzzleChooser" class="puzzle-chooser" aria-hidden="true">
+  <div class="puzzle-chooser-backdrop" onclick="closePuzzleChooser()"></div>
+  <div class="puzzle-chooser-window" role="dialog" aria-modal="true">
+    <button class="puzzle-chooser-close" onclick="closePuzzleChooser()">×</button>
+    <div class="puzzle-chooser-kicker">🧩 PUZZLE SUS</div>
+    <h2>Choose your puzzle</h2>
+    <p>Pick a game to play or create.</p>
+    <div class="puzzle-chooser-grid">
+      <button class="puzzle-game-card" onclick="choosePuzzleGame('word')">
+        <span class="puzzle-game-icon">🔎</span><span><strong>Word Search</strong><small>Find hidden words</small></span><b>→</b>
+      </button>
+      <button class="puzzle-game-card jigsaw" onclick="choosePuzzleGame('jigsaw')">
+        <span class="puzzle-game-icon">🧩</span><span><strong>Jigsaw Puzzle</strong><small>Rebuild the image</small></span><b>→</b>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- =========================
      CREATE PUZZLE MODAL
@@ -2798,6 +2831,48 @@ body.shared-game-mode #gamePage .selection-arrow {
   </div>
 </section>
 
+
+<!-- =========================
+     JIGSAW CREATOR
+========================= -->
+<section id="jigsawCreatePage" class="jigsaw-page" aria-hidden="true">
+  <div class="jigsaw-modal-window">
+    <div class="jigsaw-modal-head">
+      <div><div class="jigsaw-kicker">🧩 JIGSAW PUZZLE</div><h2>Create Jigsaw</h2><p>Keep it simple. Add an image and choose how you want to play.</p></div>
+      <button class="jigsaw-x" onclick="closeJigsawCreate()">×</button>
+    </div>
+    <div class="jigsaw-create-body">
+      <div class="jigsaw-form">
+        <label>Puzzle Name</label><input id="jigsawName" maxlength="60" placeholder="e.g. Super Sus Event #1">
+        <label>Image</label>
+        <label class="jigsaw-upload"><input id="jigsawImage" type="file" accept="image/png,image/jpeg,image/webp"><span>🖼️ Choose Image</span><small id="jigsawImageName">No image selected</small></label>
+        <label>Pieces</label>
+        <div class="piece-options" id="jigsawPieceOptions">
+          <button data-pieces="9" onclick="setJigsawPieces(9)">9</button><button data-pieces="16" class="active" onclick="setJigsawPieces(16)">16</button><button data-pieces="25" onclick="setJigsawPieces(25)">25</button><button data-pieces="36" onclick="setJigsawPieces(36)">36</button><button data-pieces="49" onclick="setJigsawPieces(49)">49</button><button data-pieces="64" onclick="setJigsawPieces(64)">64</button>
+        </div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Rotate pieces</span><input id="jigsawRotation" type="checkbox"><i></i></label></div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Timer</span><select id="jigsawTimer"><option value="up">Count Up</option><option value="off">Off</option><option value="5">5 Minutes</option><option value="10">10 Minutes</option><option value="15">15 Minutes</option></select></label></div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Scoring</span><input id="jigsawScoring" type="checkbox" checked><i></i></label></div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Sound effects</span><input id="jigsawSound" type="checkbox" checked><i></i></label></div>
+        <div class="jigsaw-simple-row"><label class="switch-row"><span>Visibility</span><select id="jigsawVisibility"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select></label></div>
+        <div class="jigsaw-create-actions"><button class="btn btn-secondary" onclick="closeJigsawCreate()">Cancel</button><button class="btn btn-primary" onclick="createJigsawPuzzle()">🧩 Create Puzzle</button></div>
+      </div>
+      <div class="jigsaw-create-preview" id="jigsawCreatePreview"><div class="jigsaw-preview-empty">🧩<strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================
+     JIGSAW GAME
+========================= -->
+<section id="jigsawGamePage" class="jigsaw-page" aria-hidden="true">
+  <div class="jigsaw-game-window">
+    <div class="jigsaw-game-head"><div><div class="jigsaw-kicker">🧩 JIGSAW PUZZLE</div><h2 id="jigsawGameTitle">Jigsaw Puzzle</h2></div><button class="jigsaw-x" onclick="closeJigsawGame()">×</button></div>
+    <div class="jigsaw-stats"><div><small>TIME</small><b id="jigsawTime">00:00</b></div><div><small>MOVES</small><b id="jigsawMoves">0</b></div><div><small>PIECES</small><b id="jigsawProgress">0/16</b></div><div><small>SCORE</small><b id="jigsawScore">0</b></div></div>
+    <div class="jigsaw-board-wrap"><div class="jigsaw-reference"><div>REFERENCE</div><img id="jigsawReference" alt="Puzzle reference"></div><div class="jigsaw-board" id="jigsawBoard"><svg id="jigsawSvg" aria-label="Jigsaw board"></svg></div></div>
+    <div class="jigsaw-game-actions"><button class="btn btn-secondary" onclick="shuffleJigsaw()">↻ Shuffle</button><button class="btn btn-secondary" onclick="fitJigsaw()">⛶ Fit</button><button class="btn btn-primary" onclick="closeJigsawGame()">Exit</button></div>
+  </div>
+</section>
 
 <!-- =========================
      SAVED PUZZLES QUICK MODAL
@@ -7769,16 +7844,96 @@ document.addEventListener("click", function(e){
 
 <script src="./sus-games-sso.js"></script>
 <script src="./puzzle-sso-fix.js"></script>
+
 <script>
+/* =========================================================
+   PUZZLE GAME SELECTOR + JIGSAW (built on v2 base)
+========================================================= */
 (function(){
+  const JKEY='puzzle_sus_jigsaws_v1';
+  let chooserMode='play', jPieces=16, jImageData='', jDrag=null, jTimer=null, jStarted=0, jMoves=0, jDone=0, jScore=0, jPuzzle=null;
+  const $=id=>document.getElementById(id);
+  const saved=()=>{try{return JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){return[]}};
+  const saveAll=a=>localStorage.setItem(JKEY,JSON.stringify(a));
+  window.openPuzzleChooser=function(mode='play'){chooserMode=mode;$('puzzleChooser')?.classList.add('open');document.body.classList.add('modal-open')};
+  window.closePuzzleChooser=function(){$('puzzleChooser')?.classList.remove('open');if(!$('jigsawCreatePage')?.classList.contains('open')&&!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open')};
+  window.choosePuzzleGame=function(type){closePuzzleChooser(); if(type==='jigsaw'){if(chooserMode==='create') openJigsawCreate(); else {const list=saved(); if(list.length) startJigsaw(list[Math.floor(Math.random()*list.length)]); else openJigsawCreate();}} else { if(chooserMode==='create') openWordCreate(); else openPublicPuzzle(); }};
+  window.openWordCreate=async function(){ if(typeof requirePuzzleLogin==='function'){const u=await requirePuzzleLogin();if(!u)return;} if(typeof openCreate==='function') openCreate(); };
+  window.setJigsawPieces=function(n){jPieces=n;document.querySelectorAll('#jigsawPieceOptions button').forEach(b=>b.classList.toggle('active',Number(b.dataset.pieces)===n));renderJPreview()};
+  function openJigsawCreate(){
+    $('jigsawCreatePage')?.classList.add('open'); $('jigsawCreatePage')?.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open');
+    $('jigsawName').value=''; $('jigsawImage').value=''; $('jigsawImageName').textContent='No image selected'; jImageData=''; renderJPreview();
+  }
+  window.openJigsawCreate=openJigsawCreate;
+  window.closeJigsawCreate=function(){$('jigsawCreatePage')?.classList.remove('open');$('jigsawCreatePage')?.setAttribute('aria-hidden','true');if(!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open')};
+  $('jigsawImage')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{jImageData=r.result;$('jigsawImageName').textContent=f.name;renderJPreview()};r.readAsDataURL(f)});
+  function renderJPreview(){const box=$('jigsawCreatePreview');if(!box)return;if(!jImageData){box.innerHTML='<div class="jigsaw-preview-empty"><div style="font-size:42px">🧩</div><strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div>';return}box.innerHTML='<img src="'+jImageData+'" alt="Puzzle preview">'}
+  window.createJigsawPuzzle=function(){
+    const name=($('jigsawName').value||'Untitled Jigsaw').trim();if(!jImageData){if(typeof toast==='function')toast('Choose an image first.');return}
+    const puzzle={id:'JIG-'+Date.now().toString(36),name,image:jImageData,pieces:jPieces,rotation:$('jigsawRotation').checked,timer:$('jigsawTimer').value,scoring:$('jigsawScoring').checked,sound:$('jigsawSound').checked,visibility:$('jigsawVisibility').value,createdAt:Date.now()};
+    const a=saved();a.unshift(puzzle);saveAll(a);closeJigsawCreate();startJigsaw(puzzle);
+  };
+  function dims(n,ratio){let best=[Math.round(Math.sqrt(n*ratio)),Math.round(Math.sqrt(n/ratio))];for(let r=1;r<=n;r++){if(n%r)continue;let c=n/r;let d=Math.abs((c/r)-ratio);if(d<Math.abs((best[1]/best[0])-ratio))best=[r,c]}return {cols:best[0],rows:best[1]}}
+  function edge(a,b){return ((a*73856093)^(b*19349663))%2===0?1:-1}
+  function sidePath(x,y,w,h,top,right,bottom,left,cols,rows){
+    const q=w*.22, r=h*.22, p=[];p.push(`M ${x} ${y}`);
+    function horiz(x1,y1,len,sign){const m=x1+len/2;return ` L ${m-q} ${y1} C ${m-q/2} ${y1} ${m-q/2} ${y1+sign*r} ${m} ${y1+sign*r} C ${m+q/2} ${y1+sign*r} ${m+q/2} ${y1} ${m+q} ${y1} L ${x1+len} ${y1}`}
+    function vert(x1,y1,len,sign){const m=y1+len/2;return ` L ${x1} ${m-q} C ${x1} ${m-q/2} ${x1+sign*r} ${m-q/2} ${x1+sign*r} ${m} C ${x1+sign*r} ${m+q/2} ${x1} ${m+q/2} ${x1} ${m+q} L ${x1} ${y1+len}`}
+    p.push(horiz(x,y,w,top));p.push(vert(x+w,y,h,right));p.push(horiz(x+w,y+h,-w,bottom));p.push(vert(x,y+h,-h,left));p.push(' Z');return p.join('')
+  }
+  function makeSvg(p){
+    const svg=$('jigsawSvg');svg.innerHTML='';const rect=$('jigsawBoard').getBoundingClientRect();const ratio=1;const d=dims(p.pieces,ratio),cols=d.cols,rows=d.rows,W=900,H=600,cw=W/cols,ch=H/rows;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');svg.appendChild(defs);
+    const img=document.createElementNS('http://www.w3.org/2000/svg','image');img.setAttribute('href',p.image);img.setAttribute('x',0);img.setAttribute('y',0);img.setAttribute('width',W);img.setAttribute('height',H);img.setAttribute('preserveAspectRatio','xMidYMid slice');img.setAttribute('opacity','.14');svg.appendChild(img);
+    const pieceW=cw*.86,pieceH=ch*.86; jDone=0;jMoves=0;jScore=0;$('jigsawMoves').textContent='0';$('jigsawProgress').textContent=`0/${p.pieces}`;$('jigsawScore').textContent='0';
+    for(let i=0;i<p.pieces;i++){const row=Math.floor(i/cols),col=i%cols;const x=col*cw+cw*.07,y=row*ch+ch*.07;let top=row? -edge(row,col):0,right=col<cols-1?edge(row,col+1):0,bottom=row<rows-1?edge(row+1,col):0,left=col? -edge(row,col):0;const path=sidePath(x,y,pieceW,pieceH,top,right,bottom,left,cols,rows);const cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath');cp.id='clip_'+i;const pa=document.createElementNS('http://www.w3.org/2000/svg','path');pa.setAttribute('d',path);cp.appendChild(pa);defs.appendChild(cp);const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.classList.add('jigsaw-piece');g.dataset.index=i;g.dataset.x=x;g.dataset.y=y;g.dataset.correctX=x;g.dataset.correctY=y;g.dataset.rot=p.rotation?String((Math.floor(Math.random()*4))*90):'0';let sx=Math.random()*(W-pieceW),sy=Math.random()*(H-pieceH);g.setAttribute('transform',`translate(${sx-x} ${sy-y}) rotate(${g.dataset.rot} ${x+pieceW/2} ${y+pieceH/2})`);const pi=document.createElementNS('http://www.w3.org/2000/svg','image');pi.setAttribute('href',p.image);pi.setAttribute('x',-col*cw);pi.setAttribute('y',-row*ch);pi.setAttribute('width',W);pi.setAttribute('height',H);pi.setAttribute('preserveAspectRatio','xMidYMid slice');pi.setAttribute('clip-path',`url(#clip_${i})`);pi.setAttribute('pointer-events','none');g.appendChild(pi);const outline=document.createElementNS('http://www.w3.org/2000/svg','path');outline.setAttribute('d',path);outline.setAttribute('fill','none');outline.setAttribute('stroke','rgba(255,255,255,.65)');outline.setAttribute('stroke-width','2');outline.setAttribute('pointer-events','none');g.appendChild(outline);svg.appendChild(g);g.addEventListener('pointerdown',startDrag)}
+  }
+  function startDrag(e){e.preventDefault();const g=e.currentTarget;const svg=$('jigsawSvg');const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=svg.getScreenCTM().inverse();const p=m.matrixTransform(pt);const t=g.getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\)/);jDrag={g,startX:p.x,startY:p.y,tx:t?+t[1]:0,ty:t?+t[2]:0};g.parentNode.appendChild(g);window.addEventListener('pointermove',drag);window.addEventListener('pointerup',endDrag,{once:true})}
+  function drag(e){if(!jDrag)return;const svg=$('jigsawSvg'),pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const p=pt.matrixTransform(svg.getScreenCTM().inverse());jDrag.g.setAttribute('transform',`translate(${jDrag.tx+p.x-jDrag.startX} ${jDrag.ty+p.y-jDrag.startY}) rotate(${jDrag.g.dataset.rot} ${+jDrag.g.dataset.x+450/jPuzzle.pieces} ${+jDrag.g.dataset.y+300/jPuzzle.pieces})`)}
+  function endDrag(){if(!jDrag)return;const g=jDrag.g;const svg=$('jigsawSvg');const bb=g.getBBox();const cx=bb.x+bb.width/2,cy=bb.y+bb.height/2,tx=+g.dataset.correctX+(+g.getAttribute('data-w')||0),ty=+g.dataset.correctY;const targetX=+g.dataset.correctX+90/jDimsCols(),targetY=+g.dataset.correctY+60/jDimsRows();const tr=g.getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\)/);const curX=tr?+tr[1]:0,curY=tr?+tr[2]:0;const dx=Math.abs(curX),dy=Math.abs(curY);jMoves++;$('jigsawMoves').textContent=jMoves;if(dx<45&&dy<45&&(!jPuzzle.rotation||g.dataset.rot==='0')){g.setAttribute('transform',`translate(0 0) rotate(0)`);g.dataset.locked='1';g.style.cursor='default';jDone++;$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;if(jPuzzle.scoring){jScore+=100; $('jigsawScore').textContent=jScore} if(jDone===jPuzzle.pieces)completeJigsaw()}window.removeEventListener('pointermove',drag);jDrag=null}
+  function jDimsCols(){return dims(jPuzzle.pieces,1).cols} function jDimsRows(){return dims(jPuzzle.pieces,1).rows}
+  function startJigsaw(p){jPuzzle=p;$('jigsawGameTitle').textContent=p.name;$('jigsawReference').src=p.image;$('jigsawGamePage').classList.add('open');$('jigsawGamePage').setAttribute('aria-hidden','false');document.body.classList.add('modal-open');makeSvg(p);clearInterval(jTimer);jStarted=Date.now();if(p.timer!=='off')jTimer=setInterval(updateJTime,250);else $('jigsawTime').textContent='--:--'}
+  function updateJTime(){let sec=Math.floor((Date.now()-jStarted)/1000);if(jPuzzle.timer!=='up'){const limit=Number(jPuzzle.timer)*60;sec=Math.max(0,limit-sec);if(sec===0){clearInterval(jTimer);}}$('jigsawTime').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+  function completeJigsaw(){clearInterval(jTimer);const b=$('jigsawBoard');const d=document.createElement('div');d.className='jigsaw-complete';d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div>`;b.appendChild(d)}
+  window.closeJigsawGame=function(){clearInterval(jTimer);$('jigsawGamePage')?.classList.remove('open');$('jigsawGamePage')?.setAttribute('aria-hidden','true');document.body.classList.remove('modal-open')};
+  window.shuffleJigsaw=function(){if(jPuzzle)makeSvg(jPuzzle)};window.fitJigsaw=function(){const b=$('jigsawBoard');if(b)b.scrollIntoView({block:'center'})};
+  /* Saved Puzzles: show game chooser first, then retain the existing Word Search modal. */
   const oldSaved=window.openSavedPuzzlesModal;
   window.openSavedPuzzlesModal=function(){
-    const m=document.getElementById('psSavedTypeModal');
-    if(!m){return oldSaved&&oldSaved();}
-    m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
+    const m=$('puzzleChooser'); if(!m)return oldSaved?.(); chooserMode='saved';m.classList.add('open');document.body.classList.add('modal-open');
   };
-  window.psCloseSavedType=function(){const m=document.getElementById('psSavedTypeModal');if(m){m.classList.remove('open');m.setAttribute('aria-hidden','true')}document.body.classList.remove('modal-open')};
-  window.psOpenSavedWordSearch=function(){psCloseSavedType();const m=document.getElementById('savedPuzzlesModal');if(m){renderSavedPuzzles();m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.classList.add('modal-open')}};
+  const oldChoose=window.choosePuzzleGame;
+  window.choosePuzzleGame=function(type){
+    const mode=chooserMode; closePuzzleChooser();
+    if(mode==='saved'){
+      if(type==='word'){if(typeof oldSaved==='function')oldSaved();}
+      else {const list=saved(); if(list.length){const w=$('savedPuzzlesModal'); if(w)w.classList.remove('open'); startJigsaw(list[0]);}else openJigsawCreate();}
+      return;
+    }
+    if(type==='jigsaw'){if(mode==='create')openJigsawCreate();else{const list=saved();if(list.length)startJigsaw(list[Math.floor(Math.random()*list.length)]);else openJigsawCreate()}}
+    else {if(mode==='create')openWordCreate();else if(typeof openPublicPuzzle==='function')openPublicPuzzle()}
+  };
+})();
+</script>
+
+<script id="main-puzzle-selector-script">
+(function(){
+  window.selectMainPuzzle=function(type){
+    if(type==='word'){
+      showPage('wordSearchHomePage');
+      return;
+    }
+    if(type==='jigsaw'){
+      if(typeof openJigsawCreate==='function'){
+        openJigsawCreate();
+      }else if(typeof openPuzzleChooser==='function'){
+        openPuzzleChooser('create');
+      }else{
+        var el=document.getElementById('jigsawCreatePage');
+        if(el){el.classList.add('open');}
+      }
+    }
+  };
 })();
 </script>
 </body>
@@ -7849,458 +8004,5 @@ document.addEventListener("click", function(e){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',sync,{once:true}); else sync();
   window.addEventListener('pageshow',function(){attempts=0;sync();});
   document.addEventListener('visibilitychange',function(){if(!document.hidden){attempts=0;sync();}});
-})();
-</script>
-
-
-<style id="pastel-found-word-overrides">
-/* Each found word gets its own soft pastel highlight. */
-.cell.found.pastel-found-cell{
-  background:var(--found-word-color)!important;
-  color:#171321!important;
-  border-color:rgba(255,255,255,.34)!important;
-  box-shadow:0 0 0 2px rgba(255,255,255,.10),0 4px 14px rgba(0,0,0,.16)!important;
-  transform:none!important;
-}
-#foundSelectionLines{
-  pointer-events:none;
-}
-.found-word-line{
-  fill:none;
-  stroke:var(--found-word-color);
-  stroke-width:10;
-  stroke-linecap:round;
-  opacity:.38;
-  pointer-events:none;
-  filter:drop-shadow(0 1px 3px rgba(0,0,0,.18));
-}
-.word.pastel-found-word{
-  background:var(--found-word-color)!important;
-  color:#171321!important;
-  border-color:rgba(255,255,255,.34)!important;
-  text-decoration:line-through;
-}
-@media(max-width:600px){
-  .found-word-line{stroke-width:8}
-}
-</style>
-
-<script>
-/* Soft, unique highlight colors for every found word + continuous word trails. */
-(function(){
-  'use strict';
-
-  const PASTEL_FOUND_COLORS = [
-    '#B9A7FF', /* lavender */
-    '#8FD8FF', /* sky */
-    '#8FE3C1', /* mint */
-    '#FFD39A', /* peach */
-    '#FFB6D9', /* pink */
-    '#C7B7FF', /* violet */
-    '#9FE5E0', /* aqua */
-    '#FFE58A', /* soft yellow */
-    '#B8D7FF', /* periwinkle */
-    '#D4B8FF', /* lilac */
-    '#A9E8C4', /* green */
-    '#FFC0A8', /* coral */
-    '#AFCBFF', /* blue */
-    '#E4B8FF', /* orchid */
-    '#B8F0E2'  /* seafoam */
-  ];
-
-  function getSvg(){ return document.getElementById('selectionSvg'); }
-
-  function getLineGroup(){
-    const svg=getSvg();
-    if(!svg) return null;
-    let group=document.getElementById('foundSelectionLines');
-    if(!group){
-      group=document.createElementNS('http://www.w3.org/2000/svg','g');
-      group.id='foundSelectionLines';
-      svg.insertBefore(group,svg.firstChild?.nextSibling || null);
-    }
-    return group;
-  }
-
-  function colorForWord(word){
-    if(!game.foundColors) game.foundColors={};
-    if(!game.foundColors[word]){
-      const used=Object.keys(game.foundColors).length;
-      game.foundColors[word]=PASTEL_FOUND_COLORS[used % PASTEL_FOUND_COLORS.length];
-    }
-    return game.foundColors[word];
-  }
-
-  function cellCenter(cell,svgRect){
-    const r=cell.getBoundingClientRect();
-    return {
-      x:r.left+r.width/2-svgRect.left,
-      y:r.top+r.height/2-svgRect.top
-    };
-  }
-
-  function drawFoundWordLine(word,cells,color){
-    const svg=getSvg();
-    const group=getLineGroup();
-    if(!svg || !group || !cells || cells.length<2) return;
-
-    Array.from(group.children).find(el=>el.dataset.foundLine===word)?.remove();
-
-    const first=game.cellElements[cells[0].row]?.[cells[0].col];
-    const last=game.cellElements[cells[cells.length-1].row]?.[cells[cells.length-1].col];
-    if(!first || !last) return;
-
-    const svgRect=svg.getBoundingClientRect();
-    svg.setAttribute('viewBox',`0 0 ${svgRect.width} ${svgRect.height}`);
-    const a=cellCenter(first,svgRect);
-    const b=cellCenter(last,svgRect);
-
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.classList.add('found-word-line');
-    line.dataset.foundLine=word;
-    line.style.setProperty('--found-word-color',color);
-    line.setAttribute('x1',a.x);
-    line.setAttribute('y1',a.y);
-    line.setAttribute('x2',b.x);
-    line.setAttribute('y2',b.y);
-    group.appendChild(line);
-  }
-
-  function clearFoundLines(){
-    document.getElementById('foundSelectionLines')?.replaceChildren();
-  }
-
-  function applyFoundStyle(word,cells){
-    const color=colorForWord(word);
-    (cells||[]).forEach(pos=>{
-      const cell=game.cellElements[pos.row]?.[pos.col];
-      if(!cell) return;
-      cell.classList.add('pastel-found-cell');
-      cell.style.setProperty('--found-word-color',color);
-    });
-    const wordElement=document.querySelector(`[data-word="${word}"]`);
-    if(wordElement){
-      wordElement.classList.add('pastel-found-word');
-      wordElement.style.setProperty('--found-word-color',color);
-    }
-    drawFoundWordLine(word,cells,color);
-  }
-
-  /* Start every new puzzle with a clean set of colors/trails. */
-  const originalStartGame=window.startGame;
-  if(typeof originalStartGame==='function' && !window.__pastelFoundStartPatched){
-    window.__pastelFoundStartPatched=true;
-    window.startGame=function(puzzle){
-      clearFoundLines();
-      const result=originalStartGame.apply(this,arguments);
-      if(game) game.foundColors={};
-      return result;
-    };
-  }
-
-  /* Wrap the final foundWord function so it also gets a unique pastel color. */
-  const originalFoundWord=window.foundWord;
-  if(typeof originalFoundWord==='function' && !window.__pastelFoundWordPatched){
-    window.__pastelFoundWordPatched=true;
-    window.foundWord=function(word,cells){
-      const result=originalFoundWord.apply(this,arguments);
-      if(game?.found?.has(word)) applyFoundStyle(word,cells);
-      return result;
-    };
-  }
-
-  window.addEventListener('resize',function(){
-    if(!game?.found?.size) return;
-    for(const word of game.found){
-      const placement=game.placements?.find(p=>p.word===word || p.word?.toUpperCase()===word?.toUpperCase());
-      if(!placement) continue;
-      const color=game.foundColors?.[word] || colorForWord(word);
-      const cells=typeof getLineCells==='function' ? getLineCells(placement.start,placement.end) : [];
-      drawFoundWordLine(word,cells,color);
-    }
-  });
-})();
-</script>
-
-
-<!-- =========================================================
-     PUZZLE GAMES HUB + JIGSAW PUZZLE
-     Added as a self-contained layer; existing Word Search code remains intact.
-========================================================= -->
-<style id="ps-jigsaw-styles">
-  .ps-game-picker{max-width:980px;margin:0 auto;padding:34px 18px 80px}
-  .ps-game-picker-head{text-align:center;margin:8px 0 28px}
-  .ps-game-picker-kicker{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border:1px solid rgba(139,92,246,.28);border-radius:999px;background:rgba(139,92,246,.08);font-size:11px;font-weight:800;letter-spacing:.14em;color:#b9a7ff}
-  .ps-game-picker-title{font-size:clamp(32px,6vw,58px);font-weight:900;line-height:1.02;margin:15px 0 10px;color:#f7f3ff}
-  .ps-game-picker-sub{color:#9f9bb0;max-width:620px;margin:auto;line-height:1.6}
-  .ps-game-picker-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-  .ps-game-choice{position:relative;min-height:230px;border:1px solid rgba(255,255,255,.09);border-radius:26px;padding:28px;text-align:left;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018));box-shadow:0 20px 55px rgba(0,0,0,.22);cursor:pointer;transition:.22s ease;overflow:hidden;color:#fff}
-  .ps-game-choice:hover{transform:translateY(-4px);border-color:rgba(139,92,246,.5);box-shadow:0 28px 65px rgba(0,0,0,.32)}
-  .ps-game-choice .ico{font-size:42px;margin-bottom:18px}.ps-game-choice h3{margin:0 0 8px;font-size:25px}.ps-game-choice p{margin:0;color:#aaa5b8;line-height:1.55}.ps-game-choice .go{position:absolute;right:22px;bottom:20px;font-size:24px;color:#b9a7ff}
-  .ps-game-choice.jigsaw{background:radial-gradient(circle at 80% 15%,rgba(139,92,246,.18),transparent 35%),linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.018))}
-  .ps-jigsaw-shell{min-height:calc(100vh - 72px);padding:24px 14px 50px}
-  .ps-jigsaw-top{max-width:1200px;margin:0 auto 16px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-  .ps-jigsaw-title{font-size:26px;font-weight:900}.ps-jigsaw-meta{color:#9d99aa;font-size:12px;margin-top:4px}
-  .ps-jigsaw-actions{display:flex;gap:8px;flex-wrap:wrap}.ps-jbtn{border:1px solid rgba(255,255,255,.1);background:#171521;color:#fff;border-radius:11px;padding:9px 13px;font-weight:800;cursor:pointer}.ps-jbtn:hover{border-color:#8b5cf6}.ps-jbtn.primary{background:#7c3aed;border-color:#8b5cf6}.ps-jbtn.danger{background:#24131a}
-  .ps-jigsaw-layout{max-width:1200px;margin:auto;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:14px}
-  .ps-jboard-wrap{position:relative;min-height:520px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:#0d0c13;overflow:hidden;box-shadow:0 25px 70px rgba(0,0,0,.25)}
-  .ps-jboard{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab}.ps-jboard.dragging{cursor:grabbing}
-  .ps-jghost{position:absolute;pointer-events:none;opacity:.12;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%);max-width:70%;max-height:70%;border-radius:8px;display:none}
-  .ps-jpiece{position:absolute;box-sizing:border-box;background-repeat:no-repeat;filter:drop-shadow(0 7px 8px rgba(0,0,0,.28));cursor:grab;user-select:none;touch-action:none;will-change:transform;transition:filter .12s}.ps-jpiece:hover{filter:drop-shadow(0 10px 12px rgba(139,92,246,.2));z-index:9999}.ps-jpiece.locked{cursor:default;filter:drop-shadow(0 3px 4px rgba(0,0,0,.22))}
-  .ps-jpiece{overflow:visible;border:0!important;outline:0!important;background-color:transparent;box-shadow:none;}
-  .ps-jpiece::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;opacity:.22;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);}
-  .ps-jcreator-window{border:1px solid rgba(196,181,253,.18)!important;background:linear-gradient(145deg,rgba(25,21,38,.98),rgba(14,13,22,.98))!important;box-shadow:0 28px 90px rgba(0,0,0,.52),0 0 45px rgba(139,92,246,.10)!important;}
-  .ps-jcreator-head h2{letter-spacing:-.025em}.ps-jcreator-head p{color:#aaa3b8!important}.ps-jfield>label:first-child{color:#bdb5ce!important}.ps-jcheck{background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.07)!important;border-radius:13px!important;}
-  .ps-jcheck input{accent-color:#9b7bff}.ps-joption{border-radius:13px!important;background:rgba(255,255,255,.035)!important;border-color:rgba(255,255,255,.07)!important;}
-  .ps-jbtn{border-radius:12px!important}.ps-jbtn.primary{box-shadow:0 8px 22px rgba(124,58,237,.20)}
-
-  .ps-jpiece.dragging{z-index:10000;filter:drop-shadow(0 14px 20px rgba(0,0,0,.42))}
-  .ps-jpiece.hint{outline:2px solid #facc15;outline-offset:3px;animation:psHint 1s ease 2}@keyframes psHint{50%{filter:drop-shadow(0 0 18px rgba(250,204,21,.9))}}
-  .ps-jside{border:1px solid rgba(255,255,255,.08);border-radius:22px;background:#111019;padding:15px;height:max-content}.ps-jstat{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ps-jstat>div{padding:11px;border-radius:13px;background:#181722}.ps-jstat b{display:block;font-size:19px}.ps-jstat span{font-size:10px;color:#9691a3;text-transform:uppercase;letter-spacing:.08em}.ps-jref{margin-top:13px}.ps-jref-title{font-size:11px;font-weight:900;color:#aaa5b8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}.ps-jref img{display:block;width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.08);cursor:pointer}.ps-jtools{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.ps-jprogress{height:7px;background:#23212d;border-radius:99px;overflow:hidden;margin:12px 0 5px}.ps-jprogress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#38bdf8);transition:.25s}.ps-jhint-note{font-size:11px;color:#777286;line-height:1.45;margin-top:9px}
-  .ps-jcreator{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.7);backdrop-filter:blur(10px)}.ps-jcreator.open{display:flex}.ps-jcreator-window{width:min(1100px,100%);max-height:92vh;overflow:auto;border:1px solid rgba(255,255,255,.1);border-radius:24px;background:#111019;box-shadow:0 30px 100px rgba(0,0,0,.55)}.ps-jcreator-head{padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;justify-content:space-between;gap:15px}.ps-jcreator-head h2{margin:0;font-size:23px}.ps-jcreator-head p{margin:5px 0 0;color:#858091;font-size:12px}.ps-jcreator-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px}.ps-jfield{margin-bottom:15px}.ps-jfield label{display:block;font-size:10px;font-weight:900;color:#a9a4b5;letter-spacing:.1em;margin-bottom:7px}.ps-jfield input,.ps-jfield textarea,.ps-jfield select{width:100%;box-sizing:border-box;background:#181722;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:11px;padding:11px 12px;outline:none}.ps-jfield textarea{min-height:75px;resize:vertical}.ps-jfield input:focus,.ps-jfield textarea:focus,.ps-jfield select:focus{border-color:#8b5cf6}.ps-jimagebox{border:1px dashed rgba(255,255,255,.15);border-radius:16px;min-height:260px;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;overflow:hidden}.ps-jimagebox img{max-width:100%;max-height:290px;border-radius:10px;display:none}.ps-jupload{cursor:pointer}.ps-jupload strong{display:block;margin-bottom:5px}.ps-jupload span{font-size:11px;color:#777286}.ps-joptions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.ps-joption{background:#181722;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}.ps-joption span{display:block;font-size:10px;color:#8d8899;margin-bottom:6px}.ps-joption select{padding:8px}.ps-jchecks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ps-jcheck{display:flex;align-items:center;gap:8px;padding:9px;background:#181722;border-radius:11px;font-size:12px;color:#d0cbd8}.ps-jcreator-foot{padding:15px 20px;border-top:1px solid rgba(255,255,255,.07);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.ps-jpreview-box{background:#0b0a10;border-radius:17px;padding:15px;min-height:160px}.ps-jpreview-box img{width:100%;max-height:330px;object-fit:contain;border-radius:10px;display:none}.ps-jsmall{font-size:11px;color:#777286;line-height:1.5}.ps-jmodal{position:fixed;inset:0;z-index:13000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}.ps-jmodal.open{display:flex}.ps-jmodal-card{width:min(520px,100%);background:#111019;border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:22px}.ps-jmodal-card img{max-width:100%;max-height:55vh;display:block;margin:auto;border-radius:12px}.ps-jcomplete{text-align:center}.ps-jcomplete h2{font-size:30px;margin:6px 0}.ps-jcomplete .big{font-size:54px}.ps-jcomplete-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:15px 0}.ps-jcomplete-grid div{background:#181722;padding:10px;border-radius:11px}.ps-jcomplete-grid b{display:block;font-size:18px}.ps-jcomplete-grid span{font-size:9px;color:#888393;text-transform:uppercase}
-  @media(max-width:820px){.ps-game-picker-grid,.ps-jigsaw-layout,.ps-jcreator-body{grid-template-columns:1fr}.ps-jboard-wrap{min-height:66vh}.ps-jside{order:2}.ps-jcreator-window{max-height:95vh}.ps-jcreator-body{padding:15px}.ps-joptions{grid-template-columns:1fr 1fr}}
-  @media(max-width:520px){.ps-game-choice{min-height:190px;padding:22px}.ps-jigsaw-shell{padding:12px 8px 35px}.ps-jboard-wrap{min-height:62vh}.ps-jcreator{padding:8px}.ps-jcreator-head{padding:16px}.ps-jcreator-foot{padding:12px}.ps-jchecks{grid-template-columns:1fr}.ps-jcomplete-grid{grid-template-columns:1fr 1fr}}
-</style>
-
-<div id="psGamePicker" class="ps-game-picker" style="display:none">
-  <div class="ps-game-picker-head">
-    <div class="ps-game-picker-kicker">🧩 PUZZLE SUS</div>
-    <div class="ps-game-picker-title">Choose Your Puzzle</div>
-    <div class="ps-game-picker-sub">Pick a puzzle type and jump straight into the game. More puzzle modes can be added here later.</div>
-  </div>
-  <div class="ps-game-picker-grid">
-    <button class="ps-game-choice" onclick="psOpenWordSearch()"><div class="ico">🔎</div><h3>Word Search</h3><p>Find hidden words, beat the clock, and race your friends.</p><div class="go">→</div></button>
-    <button class="ps-game-choice jigsaw" onclick="psOpenJigsawHome()"><div class="ico">🧩</div><h3>Jigsaw Puzzle</h3><p>Rebuild an image by arranging, rotating and snapping the pieces together.</p><div class="go">→</div></button>
-  </div>
-</div>
-
-<div id="psJigsawHome" class="ps-game-picker" style="display:none">
-  <div class="ps-game-picker-head"><div class="ps-game-picker-kicker">🧩 JIGSAW PUZZLE</div><div class="ps-game-picker-title">Rebuild the Image</div><div class="ps-game-picker-sub">Create your own jigsaw, play saved puzzles, or open a shared puzzle link.</div></div>
-  <div class="ps-game-picker-grid">
-    <button class="ps-game-choice" onclick="psOpenJigsawCreate()"><div class="ico">✨</div><h3>Create Jigsaw</h3><p>Upload an image and configure the full puzzle experience.</p><div class="go">→</div></button>
-  </div>
-  <div style="text-align:center;margin-top:18px"><button class="ps-jbtn" onclick="psShowGamePicker()">← Back to Puzzle Games</button></div>
-</div>
-
-<div id="psJigsawApp" style="display:none" class="ps-jigsaw-shell">
-  <div class="ps-jigsaw-top"><div><div id="psJTitle" class="ps-jigsaw-title">Jigsaw Puzzle</div><div id="psJMeta" class="ps-jigsaw-meta"></div></div><div class="ps-jigsaw-actions"><button class="ps-jbtn" onclick="psExitJigsaw()">← Back</button><button class="ps-jbtn" onclick="psJShuffle()">🔀 Shuffle</button><button class="ps-jbtn" onclick="psJReset()">↻ Reset</button><button class="ps-jbtn" onclick="psJShare()">🔗 Share</button></div></div>
-  <div class="ps-jigsaw-layout">
-    <div id="psJBoardWrap" class="ps-jboard-wrap"><div id="psJBoard" class="ps-jboard"></div><img id="psJGhost" class="ps-jghost"></div>
-    <aside class="ps-jside">
-      <div class="ps-jstat"><div><b id="psJTime">00:00</b><span>Time</span></div><div><b id="psJScore">0</b><span>Score</span></div><div><b id="psJPieces">0/0</b><span>Pieces</span></div><div><b id="psJMoves">0</b><span>Moves</span></div></div>
-      <div class="ps-jprogress"><i id="psJProgress"></i></div><div id="psJProgressText" class="ps-jsmall">0% complete</div>
-      <div class="ps-jref-min">🧩 <span>Reference image is shown softly behind the pieces.</span></div></aside>
-  </div>
-</div>
-
-<div id="psJCreator" class="ps-jcreator" aria-hidden="true">
-  <div class="ps-jcreator-window ps-jcreator-clean">
-    <div class="ps-jcreator-head">
-      <div><div class="ps-jcreator-kicker">🧩 JIGSAW PUZZLE</div><h2 id="psJCreatorTitle">Create Jigsaw Puzzle</h2><p>Upload your image, choose the basics, and you're ready to play.</p></div>
-      <button class="ps-jbtn" onclick="psCloseJigsawCreate()" aria-label="Close">×</button>
-    </div>
-    <div class="ps-jcreator-body ps-jcreator-clean-body">
-      <section class="ps-jcreator-preview-col">
-        <div class="ps-jfield">
-          <label>IMAGE</label>
-          <label class="ps-jimagebox ps-jupload ps-jimagebox-clean" for="psJImageInput">
-            <div id="psJUploadPrompt"><strong>🖼️ Add your image</strong><span>PNG, JPG or WebP</span></div>
-            <img id="psJImagePreview" alt="Puzzle preview">
-          </label>
-          <input id="psJImageInput" type="file" accept="image/png,image/jpeg,image/webp" style="display:none">
-        </div>
-        <div class="ps-jfield">
-          <label>PUZZLE NAME</label>
-          <input id="psJName" maxlength="70" placeholder="e.g. Super Sus Spacecrew">
-        </div>
-        <div class="ps-jfield">
-          <label>DESCRIPTION <span class="ps-joptional">OPTIONAL</span></label>
-          <textarea id="psJDescription" maxlength="300" placeholder="A short description for players..."></textarea>
-        </div>
-      </section>
-      <section class="ps-jcreator-settings-col">
-        <div class="ps-jsetting-card">
-          <div class="ps-jsetting-title">Puzzle</div>
-          <div class="ps-jclean-row">
-            <label>Pieces</label>
-            <select id="psJPiecesSelect">
-              <option value="9">9 · Easy</option>
-              <option value="16">16 · Easy</option>
-              <option value="25">25 · Easy</option>
-              <option value="36" selected>36 · Normal</option>
-              <option value="49">49 · Normal</option>
-              <option value="64">64 · Hard</option>
-              <option value="81">81 · Hard</option>
-              <option value="100">100 · Hard</option>
-            </select>
-          </div>
-          <div class="ps-jclean-row">
-            <label>Rotation</label>
-            <label class="ps-switch"><input id="psJRotation" type="checkbox"><span></span><b>Off</b></label>
-          </div>
-          <div class="ps-jclean-row">
-            <label>Timer</label>
-            <select id="psJTimer">
-              <option value="countup" selected>Count Up</option>
-              <option value="off">Off</option>
-              <option value="2">2 min</option>
-              <option value="5">5 min</option>
-              <option value="10">10 min</option>
-              <option value="15">15 min</option>
-              <option value="30">30 min</option>
-            </select>
-          </div>
-        </div>
-        <div class="ps-jsetting-card">
-          <div class="ps-jsetting-title">Game</div>
-          <div class="ps-jclean-row">
-            <label>Scoring</label>
-            <label class="ps-switch"><input id="psJScoreToggle" type="checkbox" checked><span></span><b>On</b></label>
-          </div>
-          <div class="ps-jclean-row">
-            <label>Sound effects</label>
-            <label class="ps-switch"><input id="psJSound" type="checkbox" checked><span></span><b>On</b></label>
-          </div>
-          <div class="ps-jclean-row">
-            <label>Visibility</label>
-            <select id="psJVisibility">
-              <option value="public" selected>Public</option>
-              <option value="unlisted">Unlisted</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-        </div>
-        <div class="ps-jcreator-note">✨ The reference image stays softly behind the pieces while you play. Progress saves automatically.</div>
-      </section>
-    </div>
-    <div class="ps-jcreator-foot ps-jcreator-clean-foot">
-      <button class="ps-jbtn" onclick="psCloseJigsawCreate()">Cancel</button>
-      <button class="ps-jbtn primary" onclick="psCreateJigsaw()">🧩 Create Jigsaw</button>
-    </div>
-  </div>
-</div>
-
-<div id="psJRefModal"<div id="psJRefModal" class="ps-jmodal" onclick="if(event.target===this)psCloseRef()"><div class="ps-jmodal-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b>Reference Image</b><button class="ps-jbtn" onclick="psCloseRef()">×</button></div><img id="psJRefLarge"></div></div>
-<div id="psJCompleteModal" class="ps-jmodal"><div class="ps-jmodal-card ps-jcomplete"><div class="big">🎉</div><h2>Puzzle Complete!</h2><p id="psJCompleteName" class="ps-jsmall"></p><div class="ps-jcomplete-grid"><div><b id="psJCScore">0</b><span>Score</span></div><div><b id="psJCTime">00:00</b><span>Time</span></div><div><b id="psJCMoves">0</b><span>Moves</span></div></div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="ps-jbtn primary" onclick="psReplayJigsaw()">Play Again</button><button class="ps-jbtn" onclick="psCloseComplete();psOpenJigsawHome()">Jigsaw Home</button></div></div></div>
-
-<div id="psSavedTypeModal" class="ps-jmodal" aria-hidden="true"><div class="ps-jmodal-card ps-save-type-card"><div class="ps-save-type-head"><div><div class="ps-save-type-kicker">💾 SAVED PUZZLES</div><h2>Choose a Puzzle</h2><p>Which saved puzzles do you want to view?</p></div><button class="ps-jbtn" onclick="psCloseSavedType()">×</button></div><div class="ps-save-type-grid"><button class="ps-game-choice" onclick="psOpenSavedWordSearch()"><div class="ico">🔎</div><h3>Word Search</h3><p>Your saved word search puzzles</p><div class="go">→</div></button><button class="ps-game-choice" onclick="psOpenSavedJigsaw()"><div class="ico">🧩</div><h3>Jigsaw Puzzle</h3><p>Your saved image puzzles</p><div class="go">→</div></button></div></div></div>
-<div id="psJigsawSavedExternal" class="ps-jmodal" onclick="if(event.target===this)this.classList.remove('open')"><div class="ps-jmodal-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div class="ps-save-type-kicker">🧩 JIGSAW PUZZLES</div><h2 style="margin:3px 0 0">Saved Jigsaws</h2></div><button class="ps-jbtn" onclick="document.getElementById('psJigsawSavedExternal').classList.remove('open')">×</button></div><div id="psJSavedListExternal" style="margin-top:15px"></div></div></div>
-<script id="ps-jigsaw-script">
-(function(){
-  'use strict';
-  const KEY='puzzleSusJigsawsV1';
-  const PROGRESS='puzzleSusJigsawProgressV1';
-  let imageData=''; let editingId=null; let current=null; let pieces=[]; let groups=new Map(); let drag=null; let z=10; let timer=null; let startedAt=0; let elapsed=0; let moves=0; let pan={x:0,y:0,scale:1}; let boardSize={w:0,h:0};
-  const $=id=>document.getElementById(id);
-  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  function saved(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}}
-  function putSaved(a){localStorage.setItem(KEY,JSON.stringify(a))}
-  function uid(){return 'JIG-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7)}
-  function showOnly(which){['psGamePicker','psJigsawHome','psJigsawApp'].forEach(id=>$(id).style.display=id===which?'block':'none')}
-  window.psShowGamePicker=function(){showOnly('psGamePicker'); document.body.classList.remove('shared-game-mode'); window.scrollTo({top:0,behavior:'smooth'})}
-  window.psOpenWordSearch=function(){
-    showOnly('none');
-    if(typeof showPage==='function') showPage('homePage');
-    const home=document.querySelector('#homePage .ps-home-shell'); if(home) home.style.display='block';
-    const picker=$('psGamePicker'); if(picker) picker.style.display='none';
-  }
-  window.psOpenJigsawHome=function(){showOnly('psJigsawHome');window.scrollTo({top:0,behavior:'smooth'})}
-  window.psExitJigsaw=function(){stopTimer();showOnly('psJigsawHome');window.scrollTo({top:0,behavior:'smooth'})}
-  window.psOpenJigsawCreate=async function(id){
-    if(!id && typeof requirePuzzleLogin==='function'){ const u=await requirePuzzleLogin(); if(!u)return; }
-    editingId=id||null; imageData='';
-    const old=id?saved().find(x=>x.id===id):null;
-    if(old){imageData=old.image; $('psJCreatorTitle').textContent='Edit Jigsaw Puzzle'; fillForm(old)} else {clearForm()}
-    $('psJCreator').classList.add('open');$('psJCreator').setAttribute('aria-hidden','false');
-  }
-  window.psCloseJigsawCreate=function(){$('psJCreator').classList.remove('open');$('psJCreator').setAttribute('aria-hidden','true')}
-  function clearForm(){['psJName','psJDescription'].forEach(id=>$(id).value='');$('psJPiecesSelect').value='36';$('psJTimer').value='countup';$('psJVisibility').value='public';$('psJRotation').checked=false;$('psJSound').checked=true;$('psJScoreToggle').checked=true;setPreview('')}\n  function fillForm(x){$('psJName').value=x.name||'';$('psJDescription').value=x.description||'';$('psJPiecesSelect').value=x.pieces||36;$('psJTimer').value=x.timer||'countup';$('psJVisibility').value=x.visibility||'public';$('psJRotation').checked=!!x.rotation;$('psJSound').checked=x.sound!==false;$('psJScoreToggle').checked=x.scoring!==false;setPreview(x.image||'')}
-  function setPreview(src){$('psJImagePreview').src=src||'';$('psJImagePreview').style.display=src?'block':'none';$('psJUploadPrompt').style.display=src?'none':'block'}
-  $('psJImageInput').addEventListener('change',function(){const f=this.files&&this.files[0];if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Please choose a PNG, JPG or WebP image.');return}const r=new FileReader();r.onload=()=>{optimizeImage(r.result).then(src=>{imageData=src;setPreview(src)})};r.readAsDataURL(f)})
-  function optimizeImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>{const max=1100,ratio=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*ratio));c.height=Math.max(1,Math.round(im.naturalHeight*ratio));c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.78))};im.src=src})}
-  window.psCreateJigsaw=function(){
-    if(!imageData){alert('Please upload an image first.');return}
-    const name=$('psJName').value.trim()||'Untitled Jigsaw';
-    const x={id:editingId||uid(),name,description:$('psJDescription').value.trim(),image:imageData,pieces:+$('psJPiecesSelect').value,
-      style:'classic',difficulty:'auto',snap:'normal',timer:$('psJTimer').value,wrong:'none',visibility:$('psJVisibility').value,layout:'random',
-      rotation:$('psJRotation').checked,hints:false,reference:true,ghost:true,sound:$('psJSound').checked,scoring:$('psJScoreToggle').checked,
-      autoSave:true,edgeSort:false,bg:'dark',outline:'on',updatedAt:Date.now(),
-      createdAt:editingId?(saved().find(a=>a.id===editingId)?.createdAt||Date.now()):Date.now()};
-    const arr=saved().filter(a=>a.id!==x.id);arr.unshift(x);putSaved(arr);psCloseJigsawCreate();psOpenJigsawHome();setTimeout(()=>psStart(x),50);
-  }
-  window.psOpenJigsawSaved=function(){renderSaved();$('psJSavedModal').classList.add('open')}
-  window.psCloseJigsawSaved=function(){$('psJSavedModal').classList.remove('open')}
-  function renderSaved(){const list=$('psJSavedListExternal'),arr=saved();if(!arr.length){list.innerHTML='<div class="ps-jsmall">No saved jigsaw puzzles yet. Create your first one.</div>';return}list.innerHTML=arr.map(x=>`<div style="display:grid;grid-template-columns:78px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.07)"><img src="${x.image}" style="width:78px;height:58px;object-fit:cover;border-radius:8px"><div><b>${esc(x.name)}</b><div class="ps-jsmall">${x.pieces} pieces • ${esc(x.visibility)}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end"><button class="ps-jbtn" onclick="psPlaySaved('${x.id}');psCloseJigsawSaved()">Play</button><button class="ps-jbtn" onclick="psOpenJigsawCreate('${x.id}');psCloseJigsawSaved()">Edit</button><button class="ps-jbtn" onclick="psJShareSaved('${x.id}')">Share</button><button class="ps-jbtn danger" onclick="psDeleteSaved('${x.id}')">Delete</button></div></div>`).join('')}
-  window.psPlaySaved=function(id){const x=saved().find(a=>a.id===id);if(x){psCloseJigsawSaved();psOpenJigsawHome();setTimeout(()=>psStart(x),30)}}
-  window.psDeleteSaved=function(id){if(!confirm('Delete this jigsaw puzzle?'))return;putSaved(saved().filter(x=>x.id!==id));renderSaved()}
-  function calcDims(n,ratio){let best={rows:1,cols:n,score:Infinity};for(let rows=1;rows<=n;rows++){if(n%rows)continue;const cols=n/rows;const score=Math.abs((cols/rows)-ratio);if(score<best.score)best={rows,cols,score}}return best}
-  function randEdge(){return Math.random()<.5?-1:1}
-  function edgePoints(side,sign,w,h,tab){const pts=[];const seg=.28, c=.5;const inward=sign; if(side==='top'||side==='bottom'){const y=side==='top'?0:h;const dir=side==='top'?-1:1;pts.push([0,y],[w*(.5-seg),y]);if(sign){pts.push([w*(.5-seg*.55),y+dir*tab*.15],[w*(.5-.09),y+dir*tab*.82],[w*.5,y+dir*tab],[w*(.5+.09),y+dir*tab*.82],[w*(.5+seg*.55),y+dir*tab*.15])}pts.push([w*(.5+seg),y],[w,y]);}else{const x=side==='left'?0:w;const dir=side==='left'?-1:1;pts.push([x,0],[x,h*(.5-seg)]);if(sign){pts.push([x+dir*tab*.15,h*(.5-seg*.55)],[x+dir*tab*.82,h*(.5-.09)],[x+dir*tab,h*.5],[x+dir*tab*.82,h*(.5+.09)],[x+dir*tab*.15,h*(.5+seg*.55)])}pts.push([x,h*(.5+seg)],[x,h])}return pts}
-  function makePieces(x){const im=new Image();return new Promise(resolve=>{im.onload=()=>{const ar=im.naturalWidth/im.naturalHeight;let best=calcDims(x.pieces,ar);for(let r=1;r<=x.pieces;r++){if(x.pieces%r)continue;const c=x.pieces/r;const score=Math.abs(c/r-ar);if(score<best.score)best={rows:r,cols:c,score}}const R=best.rows,C=best.cols;const maxBoard=620;const cellW=Math.max(54,Math.min(maxBoard/C,(maxBoard*ar)/R));const cellH=cellW/ar;const tab=Math.max(9,Math.min(cellW,cellH)*.16);const hEdges=Array.from({length:R+1},()=>Array(C).fill(0));const vEdges=Array.from({length:R},()=>Array(C+1).fill(0));for(let r=1;r<R;r++)for(let c=0;c<C;c++)hEdges[r][c]=randEdge();for(let r=0;r<R;r++)for(let c=1;c<C;c++)vEdges[r][c]=randEdge();const out=[];for(let r=0;r<R;r++)for(let c=0;c<C;c++){const id=r*C+c;const top=r?hEdges[r][c]:0,bottom=r<R-1?hEdges[r+1][c]:0,left=c?vEdges[r][c]:0,right=c<C-1?vEdges[r][c+1]:0;const path=jigsawPath(cellW,cellH,tab,top,right,bottom,left);out.push({id,row:r,col:c,w:cellW+2*tab,h:cellH+2*tab,cellW,cellH,tab,path,x:0,y:0,rot:0,locked:false,group:id,correctX:0,correctY:0})}resolve({rows:R,cols:C,cellW,cellH,tab,boardW:C*cellW,boardH:R*cellH,pieces:out})};im.onerror=()=>resolve({rows:1,cols:x.pieces,cellW:80,cellH:80,tab:14,boardW:80*x.pieces,boardH:80,pieces:[]});im.src=x.image})}
-function jigsawPath(w,h,t,top,right,bottom,left){const x=t,y=t;const p=[];p.push(`M 0 ${y}`);p.push(`L ${x+w*.28} ${y}`);p.push(edgeCurveH(x+w*.28,y,x+w*.72,y,top,t));p.push(`L ${x+w} ${y}`);p.push(`L ${x+w} ${y+h*.28}`);p.push(edgeCurveV(x+w,y+h*.28,x+w,y+h*.72,right,t));p.push(`L ${x+w} ${y+h}`);p.push(`L ${x+w*.72} ${y+h}`);p.push(edgeCurveH(x+w*.72,y+h,x+w*.28,y+h,bottom,t,true));p.push(`L ${0} ${y+h}`);p.push(`L 0 ${y+h*.72}`);p.push(edgeCurveV(0,y+h*.72,0,y+h*.28,left,t,true));p.push(`L 0 ${y}`);p.push('Z');return p.join(' ')}
-function edgeCurveH(x1,y1,x2,y2,sign,t,reverse){if(!sign)return `L ${x2} ${y2}`;const d=t*.78*sign,mid=(x1+x2)/2,dir=reverse?-1:1;return `C ${x1+(x2-x1)*.22} ${y1}, ${mid-(x2-x1)*.16} ${y1+d*dir}, ${mid} ${y1+d*dir} C ${mid+(x2-x1)*.16} ${y1+d*dir}, ${x2-(x2-x1)*.22} ${y2}, ${x2} ${y2}`} 
-function edgeCurveV(x1,y1,x2,y2,sign,t,reverse){if(!sign)return `L ${x2} ${y2}`;const d=t*.78*sign,mid=(y1+y2)/2,dir=reverse?-1:1;return `C ${x1} ${y1+(y2-y1)*.22}, ${x1+d*dir} ${mid-(y2-y1)*.16}, ${x1+d*dir} ${mid} C ${x1+d*dir} ${mid+(y2-y1)*.16}, ${x2} ${y2-(y2-y1)*.22}, ${x2} ${y2}`} 
-function pieceTransform(p){return `translate(${p.x}px,${p.y}px) rotate(${p.rot}deg)`}
-  function layoutPieces(data){const wrap=$('psJBoardWrap');const W=wrap.clientWidth,H=wrap.clientHeight;const scale=Math.min((W-30)/data.boardW,(H-30)/data.boardH,1);boardSize={w:data.boardW*scale,h:data.boardH*scale};pan={x:(W-boardSize.w)/2,y:(H-boardSize.h)/2,scale};const pieceW=data.cellW*scale+2*data.tab*scale,pieceH=data.cellH*scale+2*data.tab*scale;pieces=data.pieces;pieces.forEach(p=>{p.w=pieceW;p.h=pieceH;p.correctX=pan.x+p.col*data.cellW*scale-data.tab*scale;p.correctY=pan.y+p.row*data.cellH*scale-data.tab*scale;p.x=p.correctX;p.y=p.correctY;p.rot=0;p.locked=false;p.group=p.id});const positions=[];if(current.layout==='tray'){const cols=Math.max(1,Math.floor(W/(pieceW+8)));pieces.forEach((p,i)=>{const c=i%cols,r=Math.floor(i/cols);positions.push({x:10+c*(pieceW+8),y:H-pieceH-10-Math.max(0,r-2)*(pieceH+4)})})}else{pieces.forEach(()=>positions.push({x:12+Math.random()*Math.max(1,W-pieceW-24),y:12+Math.random()*Math.max(1,H-pieceH-24)}))}pieces.forEach((p,i)=>{p.x=positions[i].x;p.y=positions[i].y;p.rot=current.rotation?(Math.floor(Math.random()*4)*90):0});renderPieces(data);updateStats()}
-  function renderPieces(data){const board=$('psJBoard');board.innerHTML='';board.style.background=current.bg==='light'?'#e7e3ee':'#0d0c13';$('psJGhost').src=current.image;$('psJGhost').style.display='block';$('psJRef').src=current.image;$('psJRef').style.display=current.reference?'block':'none';pieces.forEach(p=>{const el=document.createElement('div');el.className='ps-jpiece';el.dataset.id=p.id;el.id='psPiece'+p.id;el.style.width=p.w+'px';el.style.height=p.h+'px';const bw=data.boardW*pan.scale,bh=data.boardH*pan.scale;el.style.backgroundImage=`url("${current.image}")`;el.style.backgroundSize=`${bw}px ${bh}px`;el.style.backgroundPosition=`${-(p.col*data.cellW*pan.scale-pan.x+p.tab*pan.scale)}px ${-(p.row*data.cellH*pan.scale-pan.y+p.tab*pan.scale)}px`;const scaledPath=p.path.replace(/-?\d+(?:\.\d+)?/g,n=>(Number(n)*pan.scale).toFixed(2));el.style.clipPath=`path("${scaledPath}")`;el.style.webkitClipPath=`path("${scaledPath}")`;el.style.transform=pieceTransform(p);el.style.zIndex=++z;if(current.outline==='off')el.style.filter='drop-shadow(0 5px 7px rgba(0,0,0,.20))';el.addEventListener('pointerdown',e=>beginDrag(e,p));board.appendChild(el)})}
-function getPiece(id){return pieces.find(p=>p.id===+id||p.id===id)}
-  function beginDrag(e,p){if(p.locked)return;e.preventDefault();e.stopPropagation();const el=e.currentTarget;el.setPointerCapture?.(e.pointerId);const rect=$('psJBoard').getBoundingClientRect();drag={p,el,pid:e.pointerId,ox:e.clientX-rect.left-p.x,oy:e.clientY-rect.top-p.y,startX:p.x,startY:p.y};el.classList.add('dragging');el.style.zIndex=++z;moves++;updateStats();window.addEventListener('pointermove',onDrag);window.addEventListener('pointerup',endDrag,{once:true})}
-  function onDrag(e){if(!drag||e.pointerId!==drag.pid)return;const rect=$('psJBoard').getBoundingClientRect();const p=drag.p;const dx=e.clientX-rect.left-drag.ox-p.x,dy=e.clientY-rect.top-drag.oy-p.y;moveGroup(p.group,dx,dy);}
-  function groupIds(g){return pieces.filter(p=>p.group===g)}
-  function moveGroup(g,dx,dy){groupIds(g).forEach(p=>{p.x+=dx;p.y+=dy;const el=$(`psPiece${p.id}`);if(el)el.style.transform=pieceTransform(p);});}
-  function endDrag(e){if(!drag)return;const p=drag.p;drag.el.classList.remove('dragging');window.removeEventListener('pointermove',onDrag);if(current.rotation&&e.shiftKey)p.rot=(p.rot+90)%360;trySnap(p);drag=null;autoSaveProgress();}
-  function trySnap(p){if(p.rot%360!==0)return;const tol=current.snap==='easy'?Math.max(p.w,p.h)*.42:current.snap==='hard'?Math.max(p.w,p.h)*.13:Math.max(p.w,p.h)*.25;const dx=p.correctX-p.x,dy=p.correctY-p.y;if(Math.hypot(dx,dy)<=tol){const ids=groupIds(p.group);ids.forEach(q=>{q.x+=dx;q.y+=dy;q.locked=true;q.rot=0});const near=pieces.filter(q=>!q.locked&&q.group!==p.group&&Math.abs((q.col-p.col))<=1&&Math.abs((q.row-p.row))<=1);near.forEach(q=>{const expectedX=p.correctX+(q.col-p.col)*q.cellW*pan.scale,expectedY=p.correctY+(q.row-p.row)*q.cellH*pan.scale;if(Math.hypot(q.x-expectedX,q.y-expectedY)<Math.max(q.w,q.h)*.28){const ddx=p.x-q.x+(q.col-p.col)*q.cellW*pan.scale,ddy=p.y-q.y+(q.row-p.row)*q.cellH*pan.scale;const old=q.group;groupIds(old).forEach(a=>{a.x+=ddx;a.y+=ddy;a.group=p.group});}});if(current.sound)psBeep(720,.07);updateStats();if(pieces.every(q=>q.locked))completeGame()}}
-  function autoSaveProgress(){if(!current.autoSave)return;try{localStorage.setItem(PROGRESS+':'+current.id,JSON.stringify({pieces:pieces.map(p=>({id:p.id,x:p.x,y:p.y,rot:p.rot,locked:p.locked,group:p.group})),elapsed,moves}))}catch{}}
-  function loadProgress(){try{const d=JSON.parse(localStorage.getItem(PROGRESS+':'+current.id)||'null');if(!d)return false;const map=new Map((d.pieces||[]).map(p=>[p.id,p]));pieces.forEach(p=>{const q=map.get(p.id);if(q){Object.assign(p,q)}});elapsed=d.elapsed||0;moves=d.moves||0;return true}catch{return false}}
-  function clearProgress(){localStorage.removeItem(PROGRESS+':'+current.id)}
-  function psBeep(freq,dur){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const a=new C(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;g.gain.value=.035;o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}catch{}}
-  function tick(){if(!startedAt)return;elapsed=(Date.now()-startedAt)+elapsedBase;renderTime()}
-  let elapsedBase=0;
-  function startTimer(){stopTimer();if(current.timer==='off'){renderTime();return}elapsedBase=elapsed;startedAt=Date.now();timer=setInterval(tick,250)}
-  function stopTimer(){if(timer)clearInterval(timer);timer=null;if(startedAt){elapsed=(Date.now()-startedAt)+elapsedBase;startedAt=0}}
-  function renderTime(){let s=Math.floor(elapsed/1000);let m=Math.floor(s/60);s%=60;$('psJTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
-  function updateStats(){const locked=pieces.filter(p=>p.locked).length;const pct=Math.round(locked/pieces.length*100);$('psJPieces').textContent=locked+'/'+pieces.length;$('psJProgress').style.width=pct+'%';$('psJProgressText').textContent=pct+'% complete';$('psJMoves').textContent=moves;const score=current.scoring?Math.max(0,locked*100+Math.max(0,10000-Math.floor(elapsed/1000)*8)-moves*2):0;$('psJScore').textContent=score.toLocaleString();renderTime()}
-  async function psStart(x){current=x;showOnly('psJigsawApp');$('psJTitle').textContent=x.name;$('psJMeta').textContent=`${x.pieces} pieces • ${x.difficulty==='auto'?'Auto difficulty':x.difficulty} • ${x.rotation?'Rotation on':'Rotation off'}`;elapsed=0;moves=0;const data=await makePieces(x);layoutPieces(data);const resumed=x.autoSave&&loadProgress();if(resumed){renderPieces(data);updateStats()}startTimer();if(x.timer!=='countup'&&x.timer!=='off'){const limit=+x.timer*60*1000;const check=setInterval(()=>{if(elapsed>=limit){clearInterval(check);stopTimer();alert('Time is up! You can still continue or reset the puzzle.')}} ,500)}window.scrollTo({top:0,behavior:'smooth'})}
-  window.psJReset=function(){if(!current)return;if(!confirm('Reset this puzzle and start again?'))return;clearProgress();psStart(current)}
-  window.psJShuffle=function(){if(!current)return;pieces.forEach(p=>{if(!p.locked){p.x=15+Math.random()*Math.max(1,$('psJBoardWrap').clientWidth-p.w-30);p.y=15+Math.random()*Math.max(1,$('psJBoardWrap').clientHeight-p.h-30);p.rot=current.rotation?(Math.floor(Math.random()*4)*90):0}});renderPieces({boardW:boardSize.w/pan.scale,boardH:boardSize.h/pan.scale,cellW:current._cellW||boardSize.w/pan.scale,cellH:current._cellH||boardSize.h/pan.scale});updateStats()}
-  window.psJHint=function(){if(!current||!current.hints)return;const p=pieces.find(q=>!q.locked);if(!p)return;const el=$(`psPiece${p.id}`);if(el){el.classList.add('hint');el.style.zIndex=10050;setTimeout(()=>{el.classList.remove('hint');el.style.zIndex=++z},2200)}$('psJHintText').textContent=`💡 Piece ${p.row+1}-${p.col+1} is highlighted. Move it toward its matching spot.`;if(current.sound)psBeep(560,.08)}
-  window.psJToggleGhost=function(){current.ghost=!current.ghost;$('psJGhost').style.display=current.ghost?'block':'none'}
-  window.psJViewReference=function(){if(!current.reference)return;$('psJRefLarge').src=current.image;$('psJRefModal').classList.add('open')}
-  window.psCloseRef=function(){$('psJRefModal').classList.remove('open')}
-  function completeGame(){stopTimer();clearProgress();const score=+($('psJScore').textContent.replace(/,/g,''));$('psJCScore').textContent=score.toLocaleString();$('psJCTime').textContent=$('psJTime').textContent;$('psJCMoves').textContent=moves;$('psJCompleteName').textContent=current.name;$('psJCompleteModal').classList.add('open');if(current.sound)psBeep(980,.16)}
-  window.psCloseComplete=function(){$('psJCompleteModal').classList.remove('open')}
-  window.psReplayJigsaw=function(){psCloseComplete();psStart(current)}
-  function applyIds(){pieces.forEach(p=>{const el=document.querySelector(`.ps-jpiece[data-id="${p.id}"]`);if(el)el.id='psPiece'+p.id})}
-  const oldRender=renderPieces;renderPieces=function(data){oldRender(data);applyIds()}
-  // Correctly align image background after the board is rendered.
-  const origLayout=layoutPieces;layoutPieces=function(data){data.pieces.forEach(p=>p.poly=p.poly);origLayout(data);applyIds()}
-  // Refit on resize without destroying piece positions.
-  window.addEventListener('resize',()=>{if(!current||$('psJigsawApp').style.display==='none')return;const oldScale=pan.scale;const W=$('psJBoardWrap').clientWidth,H=$('psJBoardWrap').clientHeight;const data={boardW:boardSize.w/oldScale,boardH:boardSize.h/oldScale,cellW:boardSize.w/oldScale/(current.pieces),cellH:boardSize.h/oldScale/(current.pieces)};/* Keep current layout stable; browser will naturally reflow around it. */});
-  function jigsawToShareHash(x){
-    const payload={v:1,id:x.id,name:x.name,description:x.description,image:x.image,pieces:x.pieces,style:x.style,difficulty:x.difficulty,snap:x.snap,timer:x.timer,wrong:x.wrong,rotation:x.rotation,hints:x.hints,reference:x.reference,ghost:x.ghost,sound:x.sound,scoring:x.scoring,layout:x.layout,bg:x.bg,outline:x.outline};
-    try{return '#jigsaw-data='+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(payload)))))}catch{return '#jigsaw='+encodeURIComponent(x.id)}
-  }
-  function shareJigsaw(x){
-    const url=location.origin+location.pathname+jigsawToShareHash(x);
-    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(url).then(()=>alert('Jigsaw share link copied!')).catch(()=>prompt('Copy this Jigsaw link:',url))}else prompt('Copy this Jigsaw link:',url)
-  }
-  window.psJShare=function(){if(current)shareJigsaw(current)}
-  window.psJShareSaved=function(id){const x=saved().find(a=>a.id===id);if(x)shareJigsaw(x)}
-  function decodeSharedJigsaw(raw){try{const json=decodeURIComponent(raw);const str=decodeURIComponent(escape(atob(json)));const x=JSON.parse(str);return x&&x.image?x:null}catch{return null}}
-  function boot(){
-    // Replace the old Puzzle Sus home with the new game selector while keeping its existing Word Search UI intact.
-    const home=document.getElementById('homePage');if(!home)return;
-    const shell=home.querySelector('.ps-home-shell');
-    if(shell){shell.dataset.originalDisplay=shell.style.display;shell.style.display='none'}
-    const picker=$('psGamePicker');if(picker){picker.style.display='block';if(picker.parentElement!==home)home.appendChild(picker)}
-    const jh=$('psJigsawHome');if(jh&&jh.parentElement!==home)home.appendChild(jh);
-    const app=$('psJigsawApp');if(app&&app.parentElement!==home)home.appendChild(app);
-    // The top Home button should return to the puzzle selector.
-    document.querySelector('.header .nav button[onclick="showPage(\'homePage\')"]')?.setAttribute('onclick','psShowGamePicker()');
-    // Direct deep link: #jigsaw=<id> opens that puzzle. This is intentionally fragment-based so no server route is required.
-    const dataMatch=location.hash.match(/^#jigsaw-data=(.+)$/);if(dataMatch){const x=decodeSharedJigsaw(dataMatch[1]);if(x)setTimeout(()=>psStart(x),120)} else {const m=location.hash.match(/^#jigsaw=([^&]+)/);if(m){const x=saved().find(a=>a.id===decodeURIComponent(m[1]));if(x)setTimeout(()=>psStart(x),120)}}
-  }
-  boot();
-  // Keep public puzzle root as the selector. Existing shared Word Search hashes continue to be handled by the original app.
 })();
 </script>
