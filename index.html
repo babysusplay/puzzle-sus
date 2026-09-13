@@ -873,6 +873,63 @@ label{
 }
 
 /* =========================
+   SAVED PUZZLES MODAL
+========================= */
+.saved-puzzles-modal{
+    position:fixed;
+    inset:0;
+    z-index:3200;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(4,3,9,.82);
+    backdrop-filter:blur(10px);
+}
+.saved-puzzles-modal.open{display:flex;}
+.saved-puzzles-window{
+    width:min(1050px,100%);
+    max-height:min(86vh,820px);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border-radius:20px;
+    background:#151326;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 30px 100px rgba(0,0,0,.6);
+    animation:modalIn .18s ease;
+}
+.saved-puzzles-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    padding:20px 22px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+    flex-shrink:0;
+}
+.saved-puzzles-title{font-size:23px;font-weight:950;}
+.saved-puzzles-subtitle{margin-top:4px;color:var(--muted);font-size:13px;}
+.saved-puzzles-close{
+    width:38px;height:38px;border-radius:11px;
+    border:1px solid var(--border);
+    background:#242039;color:#ddd9ec;font-size:23px;
+    line-height:1;
+}
+.saved-puzzles-close:hover{background:#302b4b;}
+.saved-puzzles-body{
+    padding:20px 22px 24px;
+    overflow:auto;
+}
+.saved-puzzles-body .quiz-grid{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));}
+@media(max-width:600px){
+    .saved-puzzles-modal{padding:10px;}
+    .saved-puzzles-window{max-height:92vh;border-radius:16px;}
+    .saved-puzzles-header{padding:16px;}
+    .saved-puzzles-body{padding:15px;}
+}
+
+/* =========================
    HISTORY
 ========================= */
 
@@ -2488,7 +2545,7 @@ body.shared-game-mode #gamePage .selection-arrow {
 
         <nav class="nav">
             <button onclick="showPage('homePage')">Home</button>
-            <button onclick="showPage('savedPage')">Saved Puzzles</button>
+            <button onclick="openSavedPuzzlesModal()">Saved Puzzles</button>
             <button onclick="showPage('historyPage')">History</button>
             <span id="authArea" class="header-auth">
                 <button class="auth-btn" onclick="openLogin()">🔐 Login</button>
@@ -2702,6 +2759,24 @@ body.shared-game-mode #gamePage .selection-arrow {
   </div>
 </section>
 
+
+<!-- =========================
+     SAVED PUZZLES QUICK MODAL
+========================= -->
+<div id="savedPuzzlesModal" class="saved-puzzles-modal" aria-hidden="true" onclick="if(event.target===this)closeSavedPuzzlesModal()">
+  <div class="saved-puzzles-window" role="dialog" aria-modal="true" aria-labelledby="savedPuzzlesModalTitle">
+    <div class="saved-puzzles-header">
+      <div>
+        <div id="savedPuzzlesModalTitle" class="saved-puzzles-title">Saved Puzzles</div>
+        <div class="saved-puzzles-subtitle">Play, edit, share or delete your saved puzzles.</div>
+      </div>
+      <button class="saved-puzzles-close" onclick="closeSavedPuzzlesModal()" title="Close">×</button>
+    </div>
+    <div class="saved-puzzles-body">
+      <div id="savedPuzzlesModalGrid" class="quiz-grid"></div>
+    </div>
+  </div>
+</div>
 
 <!-- =========================
      SAVED PUZZLES
@@ -3552,113 +3627,61 @@ function deletePuzzle(id){
    SAVED PUZZLES UI
 ========================================================= */
 
-function renderSavedPuzzles(){
-
-    const grid =
-        document.getElementById(
-            "quizGrid"
-        );
-
+function getSavedPuzzlesCardHTML(){
     if(!puzzles.length){
-
-        grid.innerHTML = `
-
-            <div
-                class="glass"
-                style="
-                    grid-column:1/-1;
-                    padding:35px;
-                    text-align:center;
-                    border-radius:17px;
-                "
-            >
-
-                <div style="font-size:35px">
-                    🧩
-                </div>
-
-                <div
-                    style="
-                        margin-top:8px;
-                        font-weight:900;
-                    "
-                >
-                    No puzzles yet
-                </div>
-
-                <div
-                    style="
-                        margin-top:5px;
-                        color:#918ca5;
-                        font-size:13px;
-                    "
-                >
-                    Create your first puzzle.
-                </div>
-
+        return `
+            <div class="glass" style="grid-column:1/-1;padding:35px;text-align:center;border-radius:17px;">
+                <div style="font-size:35px">🧩</div>
+                <div style="margin-top:8px;font-weight:900;">No puzzles yet</div>
+                <div style="margin-top:5px;color:#918ca5;font-size:13px;">Create your first puzzle.</div>
             </div>
-
         `;
-
-        return;
-
     }
 
-
-    grid.innerHTML =
-        puzzles
-        .map(puzzle => `
-
-            <div class="quiz-card">
-
-                <div class="quiz-card-title">
-                    ${escapeHTML(puzzle.name)}
-                </div>
-
-                <div class="quiz-card-meta">
-                    ${puzzle.words.length} words
-                    • ${puzzle.size}×${puzzle.size}
-                </div>
-
-                <div class="quiz-card-actions">
-
-                    <button
-                        class="btn btn-primary btn-small"
-                        onclick="playPuzzle('${puzzle.id}')"
-                    >
-                        ▶ Play
-                    </button>
-
-                    <button
-                        class="btn btn-secondary btn-small"
-                        onclick="editPuzzle('${puzzle.id}')"
-                    >
-                        ✏️ Edit
-                    </button>
-
-                    <button
-                        class="btn btn-secondary btn-small"
-                        onclick="sharePuzzle('${puzzle.id}')"
-                    >
-                        🔗 Share
-                    </button>
-
-                    <button
-                        class="btn btn-danger btn-small"
-                        onclick="deletePuzzle('${puzzle.id}')"
-                    >
-                        Delete
-                    </button>
-
-                </div>
-
+    return puzzles.map(puzzle => `
+        <div class="quiz-card">
+            <div class="quiz-card-title">${escapeHTML(puzzle.name)}</div>
+            <div class="quiz-card-meta">${puzzle.words.length} words • ${puzzle.size}×${puzzle.size}</div>
+            <div class="quiz-card-actions">
+                <button class="btn btn-primary btn-small" onclick="playPuzzle('${puzzle.id}')">▶ Play</button>
+                <button class="btn btn-secondary btn-small" onclick="editPuzzle('${puzzle.id}')">✏️ Edit</button>
+                <button class="btn btn-secondary btn-small" onclick="sharePuzzle('${puzzle.id}')">🔗 Share</button>
+                <button class="btn btn-danger btn-small" onclick="deletePuzzle('${puzzle.id}')">Delete</button>
             </div>
-
-        `)
-        .join("");
-
+        </div>
+    `).join("");
 }
 
+function renderSavedPuzzles(){
+    const html = getSavedPuzzlesCardHTML();
+    const grid = document.getElementById("quizGrid");
+    const modalGrid = document.getElementById("savedPuzzlesModalGrid");
+    if(grid) grid.innerHTML = html;
+    if(modalGrid) modalGrid.innerHTML = html;
+}
+
+function openSavedPuzzlesModal(){
+    renderSavedPuzzles();
+    const modal=document.getElementById("savedPuzzlesModal");
+    if(!modal) return;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("modal-open");
+}
+
+function closeSavedPuzzlesModal(){
+    const modal=document.getElementById("savedPuzzlesModal");
+    if(!modal) return;
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
+    document.body.classList.remove("modal-open");
+}
+
+
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="Escape") closeSavedPuzzlesModal();
+});
 
 /* =========================================================
    PUZZLE GENERATION
