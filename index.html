@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Puzzle Sus</title>
+<script data-puzzle-sus-supabase src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <style>
 :root{
@@ -3244,7 +3245,10 @@ function getUserId(){
    CREATE PUZZLE
 ========================================================= */
 
-function openCreate(){
+async function openCreate(){
+
+    const user = await requirePuzzleLogin();
+    if(!user) return;
 
     editingPuzzleId = null;
 
@@ -3289,11 +3293,10 @@ function closeCreate(){
 }
 
 
-function savePuzzle(){
+async function savePuzzle(){
 
-    if(!getLocalAuth()){
-        openLogin();
-        toast("Please login to save your puzzle.");
+    const user = await requirePuzzleLogin();
+    if(!user){
         return;
     }
 
@@ -6753,62 +6756,125 @@ function renderCreateSavedPreview(){
 }
 
 /* =========================================================
-   SIMPLE LOCAL LOGIN
+   SHARED SUS GAMES LOGIN
+   Uses the same Supabase Auth project/session as the Main Hub.
+   Because the Hub and Puzzle live under the same GitHub Pages origin,
+   the persisted Supabase session is automatically available here too.
 ========================================================= */
-const LOCAL_AUTH_KEY="puzzle_sus_local_auth_v1";
+const PS_AUTH_URL = "https://wnjsajfahsqunfesmetu.supabase.co";
+const PS_AUTH_KEY = "sb_publishable_S_ePD9oEegH0R0XR8LGvjQ_sMs9OZSm";
+let psAuthClient = null;
+let psAuthUser = null;
+let psAuthReady = null;
 
-function getLocalAuth(){
-    try{return JSON.parse(localStorage.getItem(LOCAL_AUTH_KEY)||"null")}catch(e){return null}
+function psGetAuthClient(){
+    if(psAuthClient) return psAuthClient;
+    if(!window.supabase || !window.supabase.createClient) return null;
+    psAuthClient = window.supabase.createClient(PS_AUTH_URL, PS_AUTH_KEY, {
+        auth:{
+            persistSession:true,
+            autoRefreshToken:true,
+            detectSessionInUrl:true
+        }
+    });
+    return psAuthClient;
 }
-function openLogin(){
-    const m=document.getElementById("loginModal");
-    if(!m)return;
-    const a=getLocalAuth();
-    if(a){
-        document.getElementById("loginUser").value=a.username||"";
+
+async function psLoadAuth(){
+    const client = psGetAuthClient();
+    if(!client) return null;
+    const {data,error} = await client.auth.getSession();
+    if(error) console.warn("Puzzle Sus auth session:", error);
+    psAuthUser = data?.session?.user || null;
+    updateAuthArea();
+    return psAuthUser;
+}
+
+function psDisplayName(user){
+    if(!user) return "Player";
+    return String(
+        user.user_metadata?.display_name ||
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Player"
+    ).trim().slice(0,40) || "Player";
+}
+
+function psAuthLoggedIn(){ return !!psAuthUser; }
+
+async function requirePuzzleLogin(){
+    if(!psAuthReady) psAuthReady=psLoadAuth();
+    const user=await psAuthReady;
+    if(user) return user;
+    openLogin();
+    toast("Please login with your Sus Games account first.");
+    return null;
+}
+
+async function openLogin(){
+    const user=await psLoadAuth();
+    if(user){
+        updateAuthArea();
+        toast("You are already logged in.");
+        return;
     }
-    document.getElementById("loginPass").value="";
-    document.getElementById("loginError").textContent="";
-    m.classList.remove("hidden");
+    const m=document.getElementById("loginModal");
+    if(m)m.classList.remove("hidden");
 }
+
 function closeLogin(){
     const m=document.getElementById("loginModal");
     if(m)m.classList.add("hidden");
 }
-function loginLocal(){
-    const username=(document.getElementById("loginUser")?.value||"").trim();
-    const password=document.getElementById("loginPass")?.value||"";
+
+async function loginWithProvider(provider){
+    const client=psGetAuthClient();
     const err=document.getElementById("loginError");
-    if(username.length<2){err.textContent="Enter a username.";return}
-    if(password.length<4){err.textContent="Password must be at least 4 characters.";return}
-    const old=getLocalAuth();
-    if(old && (old.username!==username || old.password!==password)){
-        err.textContent="Those login details do not match this browser.";
+    if(!client){
+        if(err)err.textContent="Login service is still loading. Please try again.";
         return;
     }
-    if(!old){
-        localStorage.setItem(LOCAL_AUTH_KEY,JSON.stringify({username,password}));
-        toast("Account created and logged in!");
-    }else{
-        toast("Logged in!");
-    }
-    closeLogin();
-    updateAuthArea();
+    if(err)err.textContent="Opening "+provider+" login…";
+    const {error}=await client.auth.signInWithOAuth({
+        provider,
+        options:{redirectTo:window.location.href}
+    });
+    if(error && err)err.textContent=error.message;
 }
-function logoutLocal(){
-    localStorage.removeItem(LOCAL_AUTH_KEY);
+
+async function logoutLocal(){
+    const client=psGetAuthClient();
+    if(client) await client.auth.signOut();
+    psAuthUser=null;
+    psAuthReady=Promise.resolve(null);
     updateAuthArea();
-    toast("Logged out.");
+    toast("Logged out from Sus Games.");
 }
+
 function updateAuthArea(){
     const area=document.getElementById("authArea");
     if(!area)return;
-    const a=getLocalAuth();
-    area.innerHTML=a
-      ? `<span class="auth-user">👤 ${escapeHTML(a.username)}</span><button class="auth-btn" onclick="logoutLocal()">Logout</button>`
-      : `<button class="auth-btn" onclick="openLogin()">🔐 Login</button>`;
+    if(psAuthUser){
+        const name=psDisplayName(psAuthUser);
+        area.innerHTML=`<span class="auth-user">👤 ${escapeHTML(name)}</span><button class="auth-btn" onclick="logoutLocal()">Logout</button>`;
+    }else{
+        area.innerHTML=`<button class="auth-btn" onclick="openLogin()">🔐 Login</button>`;
+    }
 }
 
+/* Shared session is restored automatically whenever Puzzle Sus opens. */
+document.addEventListener("DOMContentLoaded",()=>{
+    psAuthReady=psLoadAuth();
+    const client=psGetAuthClient();
+    if(client){
+        client.auth.onAuthStateChange((_event,session)=>{
+            psAuthUser=session?.user||null;
+            psAuthReady=Promise.resolve(psAuthUser);
+            updateAuthArea();
+        });
+    }
+});
 
 document.addEventListener("keydown", function(e){
     if(e.key === "Escape"){
@@ -6830,16 +6896,13 @@ document.addEventListener("click", function(e){
 
 <div class="modal-overlay hidden" id="loginModal">
   <div class="modal login-modal">
-    <div class="modal-title">🔐 Admin Login</div>
-    <div class="modal-text">Login once on this browser to keep your saved puzzles available.</div>
-    <label class="login-label" for="loginUser">Username</label>
-    <input id="loginUser" type="text" maxlength="40" placeholder="Your username" autocomplete="username">
-    <label class="login-label" for="loginPass">Password</label>
-    <input id="loginPass" type="password" maxlength="80" placeholder="Create a password" autocomplete="current-password">
+    <div class="modal-title">🔐 Login to Sus Games</div>
+    <div class="modal-text">Use the same account you use on the Sus Games Main Hub.</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="loginWithProvider('google')">Continue with Google</button>
+    <button class="btn btn-secondary" style="width:100%;margin-top:10px" onclick="loginWithProvider('discord')">Continue with Discord</button>
     <div id="loginError" class="login-error"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeLogin()">Cancel</button>
-      <button class="btn btn-primary" onclick="loginLocal()">Login / Save</button>
     </div>
   </div>
 </div>
@@ -7368,11 +7431,13 @@ document.addEventListener("click", function(e){
 
   window.createRoomFromForm=async function(){
     try{
+      const user=await requirePuzzleLogin();
+      if(!user)return;
       const puzzle=psPuzzleFromForm();
       if(!psEnsureClient()) return;
       const code=psCode();
       const generated=generatePuzzle(puzzle.words,puzzle.size,puzzle.directionCount||8);
-      psRoom={code,puzzle,clientId:uid(),isHost:true,status:'waiting',startAt:0,name:psSafeName(localStorage.getItem('puzzle_sus_name')||'Host'),grid:generated.grid,placements:generated.placements};
+      psRoom={code,puzzle,clientId:uid(),isHost:true,status:'waiting',startAt:0,name:psSafeName(localStorage.getItem('puzzle_sus_name')||psDisplayName(psAuthUser)||'Host'),grid:generated.grid,placements:generated.placements};
       psRoomPlayers=new Map([[psRoom.clientId,{id:psRoom.clientId,name:psRoom.name,score:0,found:0,host:true,joinedAt:Date.now()}]]);
       const ok=await psSubscribeRoom();
       if(!ok){psRoom=null;return;}
@@ -7497,7 +7562,9 @@ document.addEventListener("click", function(e){
 
   window.psJoinRoomFromOverlay=async function(){
     const payload=psJoinPayload; if(!payload)return;
-    const name=psSafeName(psEl('psPlayerName')?.value);
+    const user=await requirePuzzleLogin();
+    if(!user)return;
+    const name=psSafeName(psEl('psPlayerName')?.value || psDisplayName(user));
     if(name==='Player'){psEl('psJoinError').textContent='Please enter your name.';return;}
     localStorage.setItem('puzzle_sus_name',name);
     const client=psEnsureClient(); if(!client)return;
@@ -7521,7 +7588,7 @@ document.addEventListener("click", function(e){
   function psOpenJoinPayload(payload){
     psJoinPayload=payload;
     psEl('psJoinPuzzleName').textContent=payload.puzzleName?('Puzzle: '+payload.puzzleName):'Enter your name to join.';
-    psEl('psPlayerName').value=localStorage.getItem('puzzle_sus_name')||'';
+    psEl('psPlayerName').value=localStorage.getItem('puzzle_sus_name')||psDisplayName(psAuthUser)||'';
     psEl('psJoinError').textContent='';
     psOpenOverlay('psNameOverlay');
     setTimeout(()=>psEl('psPlayerName')?.focus(),50);
