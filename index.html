@@ -2470,6 +2470,7 @@ body.shared-game-mode #gamePage .selection-arrow {
 
         <nav class="nav">
             <button onclick="showPage('homePage')">Home</button>
+            <button onclick="showPage('savedPage')">Saved Puzzles</button>
             <button onclick="showPage('historyPage')">History</button>
             <span id="authArea" class="header-auth">
                 <button class="auth-btn" onclick="openLogin()">🔐 Login</button>
@@ -2484,50 +2485,51 @@ body.shared-game-mode #gamePage .selection-arrow {
      HOME
 ========================= -->
 
-<section id="homePage" class="page active home">
+<section id="homePage" class="page active home ps-home-redesign">
 
-    <div class="container home-content">
-<h1 class="home-title">
-            <span class="gradient">PUZZLE SUS</span>
-        </h1>
-
-        <p class="home-subtitle">
-            Create a word puzzle, share it with your players,
-            and see who can find every word the fastest.
-        </p>
-
-        <div class="home-actions">
-
-            <button
-                class="btn btn-primary big-btn"
-                onclick="openCreate()"
-            >
-                🧩 Create Puzzle
-            </button>
-
-            <button
-                class="btn btn-secondary big-btn"
-                onclick="openJoin()"
-            >
-                🎮 Join Puzzle
-            </button>
-
-            <button
-                class="btn btn-secondary big-btn"
-                onclick="showPage('savedPage')"
-            >
-                💾 Saved Puzzles
-            </button>
-
-            <button
-                class="btn btn-secondary big-btn"
-                onclick="openPublicPuzzle()"
-            >
-                🎲 Play Puzzle
-            </button>
-
+    <div class="container ps-home-shell">
+        <div class="ps-hero-copy">
+            <div class="ps-hero-kicker"><span>🧩</span> WORD SEARCH ARENA</div>
+            <h1 class="home-title">
+                <span class="gradient">PUZZLE SUS</span>
+            </h1>
+            <p class="home-subtitle">
+                Find every word, beat the clock, and race your friends.
+            </p>
         </div>
 
+        <div class="ps-play-card" onclick="openPublicPuzzle()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openPublicPuzzle()">
+            <div class="ps-play-icon">🎲</div>
+            <div class="ps-play-content">
+                <div class="ps-play-label">PLAY PUZZLE</div>
+                <div class="ps-play-title">Jump into a live puzzle</div>
+                <div class="ps-play-subtitle">Find a random available room and start playing.</div>
+            </div>
+            <div class="ps-play-arrow">→</div>
+        </div>
+
+        <div class="ps-home-actions">
+            <button class="ps-action-card" onclick="openCreate()">
+                <span class="ps-action-icon">🧩</span>
+                <span><strong>Create Puzzle</strong><small>Make your own puzzle</small></span>
+                <b>→</b>
+            </button>
+
+            <button class="ps-action-card" onclick="openJoin()">
+                <span class="ps-action-icon">🎮</span>
+                <span><strong>Join Puzzle</strong><small>Enter a room with friends</small></span>
+                <b>→</b>
+            </button>
+        </div>
+
+        <div class="ps-how-section">
+            <div class="ps-how-heading">How Puzzle Sus works</div>
+            <div class="ps-how-grid">
+                <div class="ps-how-card"><span>01</span><div><strong>Create</strong><p>Build your word puzzle.</p></div></div>
+                <div class="ps-how-card"><span>02</span><div><strong>Share</strong><p>Send the room link to players.</p></div></div>
+                <div class="ps-how-card"><span>03</span><div><strong>Race</strong><p>Find every word first.</p></div></div>
+            </div>
+        </div>
     </div>
 
 </section>
@@ -6953,6 +6955,214 @@ document.addEventListener("click", function(e){
 .ps-live-rank-title{font-size:11px;font-weight:1000;letter-spacing:1px;color:#8f89a4;margin-bottom:8px}
 .ps-rank-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:12px}.ps-rank-row.me{color:#a78bfa;font-weight:900}
 @media(max-width:700px){.ps-room-body{grid-template-columns:1fr}.ps-room-head{padding:20px}.ps-room-body{padding:16px}.ps-room-title{font-size:23px}.ps-room-code{font-size:25px}}
+
+/* =========================================================
+   PUZZLE SUS — HOME REDESIGN
+   ========================================================= */
+.ps-home-redesign{
+  min-height:calc(100vh - 68px);
+  padding:52px 0 70px !important;
+  display:block !important;
+}
+.ps-home-shell{
+  max-width:900px;
+  margin:0 auto;
+}
+.ps-hero-copy{
+  text-align:center;
+  margin-bottom:30px;
+}
+.ps-hero-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 12px;
+  border:1px solid #3a3155;
+  border-radius:999px;
+  background:#19162d;
+  color:#aaa1c3;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:1.2px;
+  box-shadow:0 8px 30px rgba(0,0,0,.16);
+  margin-bottom:16px;
+}
+.ps-hero-kicker span{font-size:14px}
+.ps-hero-copy .home-title{
+  font-size:clamp(52px,9vw,88px);
+  margin:0;
+  letter-spacing:-4px;
+}
+.ps-hero-copy .home-subtitle{
+  margin:16px auto 0;
+  max-width:650px;
+  font-size:16px;
+  line-height:1.65;
+}
+.ps-play-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  min-height:150px;
+  padding:27px 30px;
+  border:1px solid #59468c;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 12% 50%,rgba(139,92,246,.24),transparent 34%),
+    linear-gradient(135deg,#211a3a,#17142a);
+  box-shadow:0 22px 65px rgba(0,0,0,.30),0 0 45px rgba(139,92,246,.08);
+  cursor:pointer;
+  overflow:hidden;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.ps-play-card::after{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  right:-70px;
+  top:-90px;
+  border-radius:50%;
+  background:rgba(168,85,247,.12);
+  pointer-events:none;
+}
+.ps-play-card:hover{
+  transform:translateY(-3px);
+  border-color:#8b5cf6;
+  box-shadow:0 28px 75px rgba(0,0,0,.36),0 0 55px rgba(139,92,246,.14);
+}
+.ps-play-icon{
+  width:76px;
+  height:76px;
+  flex:0 0 76px;
+  display:grid;
+  place-items:center;
+  border-radius:20px;
+  background:linear-gradient(135deg,#8b5cf6,#a855f7);
+  font-size:35px;
+  box-shadow:0 12px 32px rgba(139,92,246,.28);
+}
+.ps-play-content{min-width:0}
+.ps-play-label{
+  color:#bcaaff;
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:1.5px;
+  margin-bottom:5px;
+}
+.ps-play-title{
+  color:#fff;
+  font-size:25px;
+  font-weight:1000;
+  letter-spacing:-.5px;
+}
+.ps-play-subtitle{
+  color:#9d98b1;
+  font-size:13px;
+  margin-top:5px;
+}
+.ps-play-arrow{
+  margin-left:auto;
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:#302650;
+  border:1px solid #4a3d69;
+  color:#fff;
+  font-size:24px;
+  font-weight:900;
+  transition:.18s ease;
+}
+.ps-play-card:hover .ps-play-arrow{transform:translateX(3px);background:#3a2d60}
+.ps-home-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:13px;
+  margin-top:13px;
+}
+.ps-action-card{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:13px;
+  width:100%;
+  min-height:92px;
+  padding:16px 18px;
+  text-align:left;
+  border:1px solid #302b4b;
+  border-radius:17px;
+  background:#19162d;
+  color:#fff;
+  cursor:pointer;
+  transition:.18s ease;
+}
+.ps-action-card:hover{transform:translateY(-2px);border-color:#594b86;background:#1d1933}
+.ps-action-icon{
+  width:46px;height:46px;display:grid;place-items:center;
+  border-radius:13px;background:#25203d;border:1px solid #3a3155;font-size:21px;
+}
+.ps-action-card strong{display:block;font-size:15px;font-weight:950}
+.ps-action-card small{display:block;margin-top:4px;color:#8f89a4;font-size:11px;font-weight:650}
+.ps-action-card b{color:#aaa1c0;font-size:20px;transition:.18s ease}
+.ps-action-card:hover b{transform:translateX(3px);color:#fff}
+.ps-how-section{margin-top:42px}
+.ps-how-heading{
+  text-align:center;
+  color:#8f89a4;
+  font-size:11px;
+  font-weight:950;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+.ps-how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.ps-how-card{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:17px;
+  border:1px solid #292540;
+  border-radius:15px;
+  background:rgba(22,19,39,.72);
+}
+.ps-how-card>span{color:#8b5cf6;font-size:11px;font-weight:1000;letter-spacing:1px}
+.ps-how-card strong{font-size:13px;color:#eae6f5}
+.ps-how-card p{margin-top:4px;color:#77718d;font-size:11px;line-height:1.45}
+/* The old home had hidden decorative strip classes; keep them definitively gone. */
+.ps-home-redesign .badge,.ps-home-redesign .event-strip,.ps-home-redesign .purple-strip,.ps-home-redesign .hero-strip{display:none!important}
+@media(max-width:700px){
+  .ps-home-redesign{padding:30px 0 45px !important}
+  .ps-home-copy{margin-bottom:22px}
+  .ps-hero-copy .home-title{letter-spacing:-2.5px}
+  .ps-play-card{min-height:132px;padding:20px;gap:14px;border-radius:18px}
+  .ps-play-icon{width:58px;height:58px;flex-basis:58px;border-radius:16px;font-size:27px}
+  .ps-play-title{font-size:20px}
+  .ps-play-subtitle{font-size:11px;line-height:1.45}
+  .ps-play-arrow{width:40px;height:40px;flex-basis:40px;font-size:20px}
+  .ps-home-actions{grid-template-columns:1fr}
+  .ps-action-card{min-height:78px}
+  .ps-how-grid{grid-template-columns:1fr}
+  .ps-how-section{margin-top:30px}
+}
+@media(max-width:850px){
+  .header .nav{gap:5px}
+  .header .nav button{padding:8px 9px;font-size:11px}
+}
+@media(max-width:520px){
+  .header .container{width:96%}
+  .header .logo span{display:none}
+  .header .logo{gap:0}
+  .header .nav{flex:1;justify-content:flex-end}
+  .header .nav button{font-size:10px;padding:7px 7px}
+  .header-auth{margin-left:0!important}
+  .auth-btn{padding:7px 8px!important;font-size:10px!important}
+  .ps-hero-kicker{font-size:9px}
+  .ps-hero-copy .home-title{font-size:48px}
+  .ps-hero-copy .home-subtitle{font-size:13px}
+}
+
 </style>
 
 
