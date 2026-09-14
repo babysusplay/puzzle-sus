@@ -8201,7 +8201,7 @@ document.addEventListener("click", function(e){
     const blob=jigsawDataUrlToBlob(p.image);
     const ext=(blob.type.split('/')[1]||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
     const path='puzzles/'+id+'.'+ext;
-    const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:true,cacheControl:'31536000'});
+    const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:false,cacheControl:'31536000'});
     if(upload.error){
       const msg=upload.error?.message||String(upload.error);
       throw new Error('Image upload failed: '+msg);
