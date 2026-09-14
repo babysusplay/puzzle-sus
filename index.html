@@ -6042,7 +6042,7 @@ function checkSharedPuzzle(){
           cause weird repeated navigation.
         */
 
-        history.replaceState(
+        window.history.replaceState(
             null,
             "",
             window.location.pathname
@@ -6587,7 +6587,7 @@ function checkSharedPuzzle(){
             history.scrollRestoration = "manual";
         }
 
-        history.replaceState(
+        window.history.replaceState(
             null,
             "",
             window.location.pathname
@@ -7851,7 +7851,7 @@ document.addEventListener("click", function(e){
       /* The old startup may have opened the puzzle solo. Stop it and replace with room join. */
       stopTimer();
       psOpenJoinPayload({roomCode,puzzleCode:p,puzzleName:puzzle.name});
-      history.replaceState(null,'',window.location.pathname);
+      window.history.replaceState(null,'',window.location.pathname);
     }catch(e){console.warn('Puzzle Sus room URL:',e);}
   }
 
@@ -8288,7 +8288,7 @@ document.addEventListener("click", function(e){
       const h=location.hash||'';
       if(!h.startsWith('#jigsaw='))return;
       const code=decodeURIComponent(h.substring(8));
-      history.replaceState(null,'',location.pathname);
+      window.history.replaceState(null,'',location.pathname);
       const legacy=decodeLegacyJigsawShare(code);
       if(legacy){startJigsaw(legacy);return;}
       const p=await fetchJigsawFromCloud(code);
