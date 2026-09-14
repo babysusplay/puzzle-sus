@@ -8143,8 +8143,15 @@ document.addEventListener("click", function(e){
 
   function getJigsawCloudClient(){
     if(jigsawCloudClient)return jigsawCloudClient;
+    /* Reuse the authenticated Puzzle Sus client when available. This keeps
+       the same Supabase session/role for Jigsaw cloud operations instead of
+       creating a second anonymous client. */
+    try{
+      const existing=typeof psGetAuthClient==='function'?psGetAuthClient():null;
+      if(existing){ jigsawCloudClient=existing; return jigsawCloudClient; }
+    }catch(e){}
     if(!window.supabase?.createClient)return null;
-    jigsawCloudClient=window.supabase.createClient(JIGSAW_SUPABASE_URL,JIGSAW_SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    jigsawCloudClient=window.supabase.createClient(JIGSAW_SUPABASE_URL,JIGSAW_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     return jigsawCloudClient;
   }
   async function getJigsawAuthUser(){
@@ -8195,7 +8202,10 @@ document.addEventListener("click", function(e){
     const ext=(blob.type.split('/')[1]||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
     const path='puzzles/'+id+'.'+ext;
     const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:true,cacheControl:'31536000'});
-    if(upload.error)throw upload.error;
+    if(upload.error){
+      const msg=upload.error?.message||String(upload.error);
+      throw new Error('Image upload failed: '+msg);
+    }
     const pub=client.storage.from('jigsaw-images').getPublicUrl(path);
     if(!pub?.data?.publicUrl)throw new Error('Could not create image URL.');
     return {path,url:pub.data.publicUrl};
