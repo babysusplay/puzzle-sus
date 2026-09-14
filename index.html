@@ -8171,9 +8171,18 @@ document.addEventListener("click", function(e){
     let out='';for(const b of bytes)out+=chars[b%chars.length];
     return out;
   }
-  function jigsawDataUrlToBlob(dataUrl){
-    const m=String(dataUrl||'').match(/^data:([^;,]+)?(;base64)?,(.*)$/s);
+  async function jigsawDataUrlToBlob(dataUrl){
+    const value=String(dataUrl||'');
+    if(/^https?:\/\//i.test(value)){
+      const r=await fetch(value,{cache:'no-store'});
+      if(!r.ok)throw new Error('Could not read the puzzle image.');
+      return await r.blob();
+    }
+    const m=value.match(/^data:([^;,]+)?(;base64)?,(.*)$/s);
     if(!m)throw new Error('Invalid image data.');
+    if(m[2]){
+      try{ return await fetch(value).then(r=>r.blob()); }catch(e){}
+    }
     const mime=m[1]||'image/png', is64=!!m[2], body=is64?atob(m[3]):decodeURIComponent(m[3]);
     const bytes=new Uint8Array(body.length);
     for(let i=0;i<body.length;i++)bytes[i]=body.charCodeAt(i);
@@ -8198,7 +8207,7 @@ document.addEventListener("click", function(e){
   async function uploadJigsawImage(p,id){
     const client=getJigsawCloudClient();
     if(!client)throw new Error('Supabase is not ready. Please refresh and try again.');
-    const blob=jigsawDataUrlToBlob(p.image);
+    const blob=await jigsawDataUrlToBlob(p.image);
     const ext=(blob.type.split('/')[1]||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
     const path='puzzles/'+id+'.'+ext;
     const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:false,cacheControl:'31536000'});
@@ -8735,38 +8744,3 @@ document.addEventListener("click", function(e){
 .jigsaw-save-success-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
 @media(max-width:760px){.jigsaw-board{width:min(100%,82vh)!important;max-width:calc(100vw - 14px)!important}.jigsaw-board-wrap{padding-left:4px!important;padding-right:4px!important}}
 </style>
-
-
-<script>
-/* LOGIN-ONLY FIX. JIGSAW / SHORT-LINK CODE ABOVE IS LEFT UNCHANGED. */
-(function(){
-  'use strict';
-  function syncLogin(){
-    try{
-      if(typeof psGetAuthClient!=='function') return;
-      var client=psGetAuthClient();
-      if(!client || !client.auth) return;
-      client.auth.getSession().then(function(res){
-        var user=res && res.data && res.data.session ? res.data.session.user : null;
-        if(user){
-          psAuthUser=user;
-          psAuthReady=Promise.resolve(user);
-          if(typeof updateAuthArea==='function') updateAuthArea();
-        }
-      }).catch(function(){});
-    }catch(e){}
-  }
-  function boot(){
-    syncLogin();
-    var tries=0;
-    var timer=setInterval(function(){
-      syncLogin();
-      if(++tries>=30) clearInterval(timer);
-    },250);
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',boot,{once:true});
-  }else boot();
-  window.addEventListener('pageshow',syncLogin);
-})();
-</script>
