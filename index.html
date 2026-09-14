@@ -8116,11 +8116,45 @@ document.addEventListener("click", function(e){
     window.renderSavedPuzzles?.(); toastMsg('Jigsaw deleted.');
   };
 
-  function encodeJigsawShare(p){
-    const data={n:p.name,i:p.image,p:p.pieces,r:!!p.rotation,t:p.timer||'up',s:p.scoring!==false,a:p.sound!==false,v:p.visibility||'public',g:p.showStats!==false,b:'custom',c:p.customBackground||'#0b0a12'};
-    return btoa(unescape(encodeURIComponent(JSON.stringify(data)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  /* =========================================================
+     JIGSAW CLOUD SHARING
+     - Puzzle image is uploaded to Supabase Storage.
+     - Puzzle settings are stored in public.jigsaw_puzzles.
+     - The shared URL contains only a short puzzle ID.
+     - Legacy long Base64 links remain readable for compatibility.
+  ========================================================= */
+  const JIGSAW_SUPABASE_URL='https://wnjsajfahsqunfesmetu.supabase.co';
+  const JIGSAW_SUPABASE_KEY='sb_publishable_S_ePD9oEegH0R0XR8LGvjQ_sMs9OZSm';
+  let jigsawCloudClient=null;
+
+  function getJigsawCloudClient(){
+    if(jigsawCloudClient)return jigsawCloudClient;
+    if(!window.supabase?.createClient)return null;
+    jigsawCloudClient=window.supabase.createClient(JIGSAW_SUPABASE_URL,JIGSAW_SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+    return jigsawCloudClient;
   }
-  function decodeJigsawShare(code){
+  function jigsawShortId(){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    const bytes=new Uint8Array(9);
+    if(window.crypto?.getRandomValues)window.crypto.getRandomValues(bytes);
+    else for(let i=0;i<bytes.length;i++)bytes[i]=Math.floor(Math.random()*256);
+    let out='';for(const b of bytes)out+=chars[b%chars.length];
+    return out;
+  }
+  function jigsawDataUrlToBlob(dataUrl){
+    const m=String(dataUrl||'').match(/^data:([^;,]+)?(;base64)?,(.*)$/s);
+    if(!m)throw new Error('Invalid image data.');
+    const mime=m[1]||'image/png', is64=!!m[2], body=is64?atob(m[3]):decodeURIComponent(m[3]);
+    const bytes=new Uint8Array(body.length);
+    for(let i=0;i<body.length;i++)bytes[i]=body.charCodeAt(i);
+    return new Blob([bytes],{type:mime});
+  }
+  function jigsawCopyLink(url){
+    if(navigator.clipboard&&window.isSecureContext){
+      navigator.clipboard.writeText(url).then(()=>toastMsg('Short Jigsaw link copied! 🔗')).catch(()=>showShareFallback?.(url));
+    }else showShareFallback?.(url);
+  }
+  function decodeLegacyJigsawShare(code){
     try{
       let b=code.replace(/-/g,'+').replace(/_/g,'/'); while(b.length%4)b+='=';
       const data=JSON.parse(decodeURIComponent(escape(atob(b))));
@@ -8128,15 +8162,59 @@ document.addEventListener("click", function(e){
       return {id:'shared-jigsaw-'+Date.now().toString(36),name:data.n,image:data.i,pieces:Number(data.p)||16,rotation:!!data.r,timer:data.t||'up',scoring:data.s!==false,sound:data.a!==false,visibility:data.v||'public',showStats:data.g!==false,background:'custom',customBackground:data.c||'#0b0a12',createdAt:Date.now(),shared:true};
     }catch(e){return null}
   }
-  window.shareJigsawPuzzle=function(id){
+  async function uploadJigsawForShare(p){
+    const client=getJigsawCloudClient();
+    if(!client)throw new Error('Supabase is not ready. Please refresh and try again.');
+    const id=jigsawShortId();
+    const blob=jigsawDataUrlToBlob(p.image);
+    const ext=(blob.type.split('/')[1]||'png').replace(/[^a-z0-9]/gi,'').toLowerCase()||'png';
+    const path=id+'.'+ext;
+    const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/png',upsert:false,cacheControl:'31536000'});
+    if(upload.error)throw upload.error;
+    const pub=client.storage.from('jigsaw-images').getPublicUrl(path);
+    if(!pub?.data?.publicUrl)throw new Error('Could not create image URL.');
+    const row={id,name:p.name,image_url:pub.data.publicUrl,pieces:Number(p.pieces)||16,rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,sound:p.sound!==false,visibility:p.visibility||'public',show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',created_by:null};
+    const ins=await client.from('jigsaw_puzzles').insert(row);
+    if(ins.error){await client.storage.from('jigsaw-images').remove([path]);throw ins.error;}
+    return id;
+  }
+  async function fetchJigsawFromCloud(id){
+    const client=getJigsawCloudClient();
+    if(!client)throw new Error('Supabase is not ready.');
+    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at').eq('id',id).eq('visibility','public').maybeSingle();
+    if(error)throw error;
+    if(!data)return null;
+    return {id:data.id,name:data.name,image:data.image_url,pieces:Number(data.pieces)||16,rotation:!!data.rotation,timer:data.timer||'up',scoring:data.scoring!==false,sound:data.sound!==false,visibility:data.visibility||'public',showStats:data.show_stats!==false,background:'custom',customBackground:data.custom_background||'#0b0a12',createdAt:data.created_at?Date.parse(data.created_at):Date.now(),shared:true};
+  }
+  window.shareJigsawPuzzle=async function(id){
     const p=saved().find(x=>x.id===id); if(!p)return;
-    const url=location.origin+location.pathname+'#jigsaw='+encodeJigsawShare(p);
-    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(url).then(()=>toastMsg('Jigsaw link copied! 🔗')).catch(()=>showShareFallback?.(url));}
-    else showShareFallback?.(url);
+    const oldText='Creating short link…';
+    try{
+      toastMsg(oldText);
+      const cloudId=await uploadJigsawForShare(p);
+      const url=location.origin+location.pathname+'#jigsaw='+encodeURIComponent(cloudId);
+      jigsawCopyLink(url);
+    }catch(e){
+      console.error('Jigsaw share failed',e);
+      toastMsg('Could not create share link. '+(e?.message||'Please try again.'));
+    }
   };
-  window.playSharedJigsaw=function(code){const p=decodeJigsawShare(code);if(p)startJigsaw(p);};
-  function checkSharedJigsaw(){
-    try{const h=location.hash||'';if(!h.startsWith('#jigsaw='))return;const p=decodeJigsawShare(h.substring(8));if(p){history.replaceState(null,'',location.pathname);startJigsaw(p);}}catch(e){}
+  window.playSharedJigsaw=function(code){
+    const legacy=decodeLegacyJigsawShare(code);
+    if(legacy){startJigsaw(legacy);return;}
+    fetchJigsawFromCloud(String(code||'')).then(p=>{if(p)startJigsaw(p);else toastMsg('Jigsaw puzzle not found.');}).catch(e=>{console.error(e);toastMsg('Could not load this Jigsaw puzzle.');});
+  };
+  async function checkSharedJigsaw(){
+    try{
+      const h=location.hash||'';
+      if(!h.startsWith('#jigsaw='))return;
+      const code=decodeURIComponent(h.substring(8));
+      history.replaceState(null,'',location.pathname);
+      const legacy=decodeLegacyJigsawShare(code);
+      if(legacy){startJigsaw(legacy);return;}
+      const p=await fetchJigsawFromCloud(code);
+      if(p)startJigsaw(p);else toastMsg('Jigsaw puzzle not found.');
+    }catch(e){console.error('Shared Jigsaw load failed',e);toastMsg('Could not load this Jigsaw puzzle.');}
   }
 
 
