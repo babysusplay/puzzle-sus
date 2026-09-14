@@ -8632,13 +8632,9 @@ document.addEventListener("click", function(e){
 
   function syncUser(user){
     var area=document.getElementById('authArea');
-    /* The header can be rendered a little later than the auth session.
-       Tell sync() to retry instead of treating a missing authArea as success. */
-    if(!area) return false;
+    if(!area) return;
 
     if(!user){
-      if(area.dataset.authUid==='') return true;
-      area.dataset.authUid='';
       area.innerHTML='<button class="auth-btn" onclick="openLogin()">🔐 Login</button>';
       if(typeof psAuthUser!=='undefined') psAuthUser=null;
       if(typeof psAuthReady!=='undefined') psAuthReady=Promise.resolve(null);
@@ -8646,8 +8642,6 @@ document.addEventListener("click", function(e){
     }
 
     try{
-      if(area.dataset.authUid===String(user.id||'')) return true;
-      area.dataset.authUid=String(user.id||'');
       var name=String(
         (user.user_metadata&&(
           user.user_metadata.display_name||
@@ -8673,10 +8667,8 @@ document.addEventListener("click", function(e){
       if(typeof psAuthUser!=='undefined') psAuthUser=user;
       if(typeof psAuthReady!=='undefined') psAuthReady=Promise.resolve(user);
       try{localStorage.setItem('puzzle_sus_name',name.slice(0,24));}catch(e){}
-      return true;
     }catch(e){
       console.warn('Puzzle auth UI sync failed:',e);
-      return false;
     }
   }
 
@@ -8686,16 +8678,8 @@ document.addEventListener("click", function(e){
     try{
       var s=await getSession();
       if(s&&s.user){
-        if(syncUser(s.user)){
-          attempts=0;
-          return;
-        }
-        /* Session is ready but the header is not mounted yet. Keep retrying. */
-        if(++attempts<100){
-          setTimeout(function(){ syncing=false; sync(); },100);
-          return;
-        }
-        syncing=false;
+        syncUser(s.user);
+        attempts=0;
         return;
       }
 
@@ -8776,20 +8760,6 @@ document.addEventListener("click", function(e){
   }else{
     boot();
   }
-
-  /* Catch headers that are inserted/replaced after auth boot. */
-  var authAreaObserver=new MutationObserver(function(){
-    if(document.getElementById('authArea')){
-      attempts=0;
-      sync();
-    }
-  });
-  try{ authAreaObserver.observe(document.body,{childList:true,subtree:true}); }catch(e){}
-
-  window.addEventListener('load',function(){
-    attempts=0;
-    sync();
-  });
 
   window.addEventListener('pageshow',function(){
     attempts=0;
