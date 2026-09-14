@@ -7921,9 +7921,16 @@ document.addEventListener("click", function(e){
   let chooserMode='play', jPieces=16, jImageData='', jDrag=null, jTimer=null, jStarted=0, jMoves=0, jDone=0, jScore=0, jPuzzle=null, jEditingId=null;
   const JIGSAW_BG={black:'#0b0a12',dark:'#19162d',slate:'#252936',light:'#e9e7ef',multi:'#24204a'};
   const $=id=>document.getElementById(id);
-  const saved=()=>{try{return JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){return[]}};
+  const GUEST_JKEY=JKEY+':guest';
+  function getJigsawStorageKey(){
+    try{
+      const uid=(typeof psAuthUser!=='undefined'&&psAuthUser?.id)?String(psAuthUser.id).trim():'';
+      return uid ? JKEY+':user:'+uid : GUEST_JKEY;
+    }catch(e){ return GUEST_JKEY; }
+  }
+  const saved=()=>{try{return JSON.parse(localStorage.getItem(getJigsawStorageKey())||'[]')}catch(e){return[]}};
   const toastMsg=(m)=>{if(typeof toast==='function')toast(m);else alert(m)};
-  const saveAll=a=>{try{localStorage.setItem(JKEY,JSON.stringify(a));return true}catch(e){toastMsg('This image is too large to save. Please use a smaller image.');return false}};
+  const saveAll=a=>{try{localStorage.setItem(getJigsawStorageKey(),JSON.stringify(a));return true}catch(e){toastMsg('This image is too large to save. Please use a smaller image.');return false}};
 
   window.openPuzzleChooser=function(mode='play'){chooserMode=mode;$('puzzleChooser')?.classList.add('open');document.body.classList.add('modal-open')};
   window.closePuzzleChooser=function(){$('puzzleChooser')?.classList.remove('open');if(!$('jigsawCreatePage')?.classList.contains('open')&&!$('jigsawGamePage')?.classList.contains('open'))document.body.classList.remove('modal-open')};
@@ -8068,7 +8075,9 @@ document.addEventListener("click", function(e){
        LocalStorage remains a fast local cache, while Supabase is the
        durable source so saves survive logout/login and another device. */
     try{
-      await persistJigsawSave(puzzle);
+      await persistJigsawSave(puzzle,existing);
+      /* Replace the local data URL with the cloud URL so the account cache stays small. */
+      if(puzzle.image && /^https?:\/\//i.test(puzzle.image)) saveAll(saved().map(x=>x.id===puzzle.id?puzzle:x));
     }catch(e){
       console.error('Jigsaw cloud save failed',e);
       toastMsg('Saved on this device, but cloud save failed. '+(e?.message||''));
@@ -8210,40 +8219,68 @@ document.addEventListener("click", function(e){
     if(!pub?.data?.publicUrl)throw new Error('Could not create image URL.');
     return {path,url:pub.data.publicUrl};
   }
-  async function persistJigsawSave(p){
+  async function persistJigsawSave(p,existing=null){
     const user=await getJigsawAuthUser();
     if(!user?.id)throw new Error('Please login before saving a cloud copy.');
     const client=getJigsawCloudClient();
     if(!client)throw new Error('Supabase is not ready.');
-    const img=await uploadJigsawImage(p,p.id);
-    const row={id:p.id,name:p.name,image_url:img.url,pieces:Number(p.pieces)||16,rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,sound:p.sound!==false,visibility:p.visibility||'public',show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',created_by:user.id};
-    const r=await client.from('jigsaw_puzzles').upsert(row,{onConflict:'id'});
-    if(r.error)throw r.error;
+
+    let imageUrl=existing?.image_url||existing?.imageUrl||null;
+    if(!imageUrl && typeof p.image==='string' && /^https?:\/\//i.test(p.image)) imageUrl=p.image;
+
+    /* A new image is uploaded to a fresh path. This avoids requiring Storage
+       UPDATE/upsert permissions and makes edits safe under RLS. */
+    if(!imageUrl || (p.image && /^data:/i.test(p.image))){
+      const uploadId=p.id+'-'+Date.now().toString(36);
+      const img=await uploadJigsawImage(p,uploadId);
+      imageUrl=img.url;
+    }
+
+    const row={
+      id:p.id,name:p.name,image_url:imageUrl,pieces:Number(p.pieces)||16,
+      rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,
+      sound:p.sound!==false,visibility:p.visibility||'public',
+      show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',
+      created_by:user.id,updated_at:new Date().toISOString()
+    };
+
+    if(existing){
+      const r=await client.from('jigsaw_puzzles').update(row).eq('id',p.id).eq('created_by',user.id);
+      if(r.error)throw r.error;
+    }else{
+      const r=await client.from('jigsaw_puzzles').insert(row);
+      if(r.error)throw r.error;
+    }
+
+    /* Keep the local cache compact after a successful cloud save. */
+    p.image=imageUrl;
   }
   async function deleteJigsawCloudSave(id){
     const user=await getJigsawAuthUser(); if(!user?.id)return;
     const client=getJigsawCloudClient(); if(!client)return;
     const r=await client.from('jigsaw_puzzles').delete().eq('id',id).eq('created_by',user.id);
     if(r.error)throw r.error;
-    await client.storage.from('jigsaw-images').remove(['puzzles/'+id+'.jpg','puzzles/'+id+'.jpeg','puzzles/'+id+'.png','puzzles/'+id+'.webp']);
   }
   async function loadJigsawCloudSaves(){
     const user=await getJigsawAuthUser();
     if(!user?.id)return;
     const client=getJigsawCloudClient(); if(!client)return;
-    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at,updated_at').eq('created_by',user.id).order('created_at',{ascending:false});
+    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at,updated_at').eq('created_by',user.id).order('updated_at',{ascending:false});
     if(error){console.warn('Could not load saved Jigsaws from cloud',error);return;}
     if(!Array.isArray(data))return;
-    const local=saved();
-    const byId=new Map(local.map(x=>[x.id,x]));
-    data.forEach(row=>{byId.set(row.id,cloudRowToJigsaw(row,false));});
-    const merged=[...byId.values()];
+    /* Account-scoped cache: only this user's cloud saves are shown after login. */
+    const merged=data.map(row=>cloudRowToJigsaw(row,false));
     saveAll(merged);
     window.renderSavedPuzzles?.();
   }
+  function switchJigsawLocalCache(){
+    window.renderSavedPuzzles?.();
+  }
+  window.switchJigsawLocalCache=switchJigsawLocalCache;
   function scheduleJigsawCloudLoad(){
     setTimeout(()=>loadJigsawCloudSaves().catch(e=>console.warn(e)),700);
   }
+  window.scheduleJigsawCloudLoad=scheduleJigsawCloudLoad;
   async function uploadJigsawForShare(p){
     const client=getJigsawCloudClient();
     if(!client)throw new Error('Supabase is not ready. Please refresh and try again.');
