@@ -8608,171 +8608,62 @@ document.addEventListener("click", function(e){
 });
 </script>
 <script>
-/* Final shared-login bridge: keep the header UI synced with the real Supabase auth state. */
+/* Final shared-login bridge: wait for Sus Games session before showing Puzzle login. */
 (function(){
   'use strict';
+  var HUB='https://babysusplay.github.io/sus-games/';
   var attempts=0;
-  var syncing=false;
-
-  function client(){
-    return window.susGamesSupabase ||
-      (typeof psGetAuthClient==='function' ? psGetAuthClient() : null);
-  }
-
-  async function getSession(){
+  function client(){ return window.susGamesSupabase || (typeof psGetAuthClient==='function' ? psGetAuthClient() : null); }
+  async function session(){
     var sb=client();
     if(!sb || !sb.auth) return null;
-    try{
-      var r=await sb.auth.getSession();
-      return r&&r.data&&r.data.session ? r.data.session : null;
-    }catch(e){
-      return null;
-    }
+    try{ var r=await sb.auth.getSession(); return r&&r.data&&r.data.session ? r.data.session : null; }
+    catch(e){ return null; }
   }
-
   function syncUser(user){
-    var area=document.getElementById('authArea');
-    if(!area) return;
-
-    if(!user){
-      area.innerHTML='<button class="auth-btn" onclick="openLogin()">🔐 Login</button>';
-      if(typeof psAuthUser!=='undefined') psAuthUser=null;
-      if(typeof psAuthReady!=='undefined') psAuthReady=Promise.resolve(null);
-      return;
-    }
-
+    if(!user) return;
     try{
-      var name=String(
-        (user.user_metadata&&(
-          user.user_metadata.display_name||
-          user.user_metadata.full_name||
-          user.user_metadata.name
-        )) ||
-        (user.email||'').split('@')[0] ||
-        'Player'
-      ).trim().slice(0,40)||'Player';
-
-      var safe=name.replace(/[&<>"']/g,function(c){
-        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-      });
-
-      area.innerHTML=
-        '<span class="ps-auth-wrap">'+
-          '<button type="button" class="ps-auth-user" onclick="togglePuzzleAuthMenu && togglePuzzleAuthMenu()">👤 '+safe+' ▾</button>'+
-          '<span id="psAuthMenu" class="ps-auth-menu">'+
-            '<button type="button" onclick="logoutLocal()">Logout</button>'+
-          '</span>'+
-        '</span>';
-
+      var name=String(user.user_metadata&&(
+        user.user_metadata.display_name||user.user_metadata.full_name||user.user_metadata.name
+      ) || (user.email||'').split('@')[0] || 'Player').trim().slice(0,40)||'Player';
+      var area=document.getElementById('authArea');
+      if(area){
+        var safe=name.replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]});
+        area.innerHTML='<span class="ps-auth-wrap"><button type="button" class="ps-auth-user" onclick="togglePuzzleAuthMenu && togglePuzzleAuthMenu()">👤 '+safe+' ▾</button><span id="psAuthMenu" class="ps-auth-menu"><button type="button" onclick="logoutLocal()">Logout</button></span></span>';
+      }
       if(typeof psAuthUser!=='undefined') psAuthUser=user;
       if(typeof psAuthReady!=='undefined') psAuthReady=Promise.resolve(user);
       try{localStorage.setItem('puzzle_sus_name',name.slice(0,24));}catch(e){}
-    }catch(e){
-      console.warn('Puzzle auth UI sync failed:',e);
-    }
+    }catch(e){}
   }
-
   async function sync(){
-    if(syncing) return;
-    syncing=true;
-    try{
-      var s=await getSession();
-      if(s&&s.user){
-        syncUser(s.user);
-        attempts=0;
-        return;
-      }
-
-      /*
-       * OAuth can finish a moment after the page is restored.
-       * Keep checking briefly so the header never stays on "Login"
-       * while the Supabase session is already being established.
-       */
-      if(++attempts<100){
-        setTimeout(function(){
-          syncing=false;
-          sync();
-        },100);
-        return;
-      }
-
-      syncUser(null);
-    }finally{
-      if(attempts>=100) syncing=false;
-    }
-  }
-
-  function attachAuthListener(){
     var sb=client();
-    if(!sb || !sb.auth) return false;
-
-    try{
-      sb.auth.onAuthStateChange(function(event,session){
-        attempts=0;
-        syncUser(session&&session.user ? session.user : null);
-
-        /*
-         * Re-check after OAuth events because the session/token can finish
-         * persisting just after the auth callback fires.
-         */
-        if(event==='SIGNED_IN' || event==='INITIAL_SESSION' || event==='TOKEN_REFRESHED'){
-          setTimeout(sync,50);
-          setTimeout(sync,500);
-        }
-      });
-      return true;
-    }catch(e){
-      return false;
+    if(!sb){
+      if(++attempts<100) setTimeout(sync,100);
+      return;
     }
+    var s=await session();
+    if(s&&s.user){ syncUser(s.user); return; }
+    if(++attempts<100) setTimeout(sync,100);
   }
-
   var originalRequire=window.requirePuzzleLogin;
   window.requirePuzzleLogin=async function(){
-    var s=await getSession();
-    if(s&&s.user){
-      syncUser(s.user);
-      return s.user;
-    }
+    var s=await session();
+    if(s&&s.user){syncUser(s.user);return s.user;}
     if(typeof originalRequire==='function') return originalRequire.apply(this,arguments);
     if(typeof openLogin==='function') openLogin();
     if(typeof toast==='function') toast('Please login with your Sus Games account first.');
     return null;
   };
-
   var originalOpenLogin=window.openLogin;
   window.openLogin=async function(){
-    var s=await getSession();
-    if(s&&s.user){
-      syncUser(s.user);
-      return s.user;
-    }
+    var s=await session();
+    if(s&&s.user){syncUser(s.user);return s.user;}
     if(typeof originalOpenLogin==='function') return originalOpenLogin.apply(this,arguments);
   };
-
-  function boot(){
-    attachAuthListener();
-    attempts=0;
-    sync();
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',boot,{once:true});
-  }else{
-    boot();
-  }
-
-  window.addEventListener('pageshow',function(){
-    attempts=0;
-    attachAuthListener();
-    sync();
-  });
-
-  document.addEventListener('visibilitychange',function(){
-    if(!document.hidden){
-      attempts=0;
-      sync();
-    }
-  });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',sync,{once:true}); else sync();
+  window.addEventListener('pageshow',function(){attempts=0;sync();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){attempts=0;sync();}});
 })();
 </script>
 
@@ -8881,3 +8772,36 @@ document.addEventListener("click", function(e){
 .jigsaw-save-success-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
 @media(max-width:760px){.jigsaw-board{width:min(100%,82vh)!important;max-width:calc(100vw - 14px)!important}.jigsaw-board-wrap{padding-left:4px!important;padding-right:4px!important}}
 </style>
+
+<script>
+/* Minimal auth UI sync: do not touch Jigsaw/share-link logic. */
+(function(){
+  function sync(){
+    try{
+      var area=document.getElementById('authArea');
+      var client=(typeof psGetAuthClient==='function')?psGetAuthClient():null;
+      if(!area || !client || !client.auth) return;
+      client.auth.getSession().then(function(r){
+        var user=r && r.data && r.data.session ? r.data.session.user : null;
+        if(user){
+          if(typeof psAuthUser!=='undefined') psAuthUser=user;
+          if(typeof psAuthReady!=='undefined') psAuthReady=Promise.resolve(user);
+          if(typeof updateAuthArea==='function') updateAuthArea();
+        }
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function boot(){
+    sync();
+    var n=0;
+    var timer=setInterval(function(){
+      sync();
+      if(++n>=50) clearInterval(timer);
+    },100);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+  window.addEventListener('pageshow',sync);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden) sync();});
+})();
+</script>
