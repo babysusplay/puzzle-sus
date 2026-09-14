@@ -2919,7 +2919,7 @@ body.shared-game-mode #gamePage .selection-arrow {
         <div class="jigsaw-create-actions">
           <button class="btn btn-secondary" onclick="closeJigsawCreate()">Cancel</button>
           <button id="jigsawSaveBtn" class="btn btn-secondary" onclick="saveJigsawPuzzle(false)">💾 Save Puzzle</button>
-          <button id="jigsawCreatePlayBtn" class="btn btn-primary" onclick="createJigsawPuzzle()">🧩 Save &amp; Play</button>
+          <button id="jigsawCreatePlayBtn" class="btn btn-primary" onclick="playJigsawFromForm()">▶ Play</button>
         </div>
       </div>
       <div class="jigsaw-create-preview" id="jigsawCreatePreview"><div class="jigsaw-preview-empty">🧩<strong>Your image will appear here</strong><span>Choose an image to preview your puzzle.</span></div></div>
@@ -7977,7 +7977,7 @@ document.addEventListener("click", function(e){
     jEditingId=null;
     $('jigsawName').value=''; $('jigsawImage').value=''; $('jigsawImageName').textContent='No image selected';
     $('jigsawSaveBtn').textContent='💾 Save Puzzle';
-    $('jigsawCreatePlayBtn').textContent='🧩 Save & Play';
+    $('jigsawCreatePlayBtn').textContent='▶ Play';
     if($('jigsawCustomBg'))$('jigsawCustomBg').value='#0b0a12';
     jImageData='';
     renderJPreview();
@@ -8064,10 +8064,35 @@ document.addEventListener("click", function(e){
     closeJigsawCreate();
     window.renderSavedPuzzles?.();
     toastMsg(existing?'Jigsaw updated!':'Jigsaw saved!');
-    if(playAfter)startJigsaw(puzzle);
+    if(playAfter){ startJigsaw(puzzle); return; }
+    showJigsawSaveSuccess(puzzle);
   };
 
-  window.createJigsawPuzzle=function(){saveJigsawPuzzle(true)};
+  window.showJigsawSaveSuccess=function(puzzle){
+    const old=$('jigsawSaveSuccess'); if(old)old.remove();
+    const overlay=document.createElement('div');
+    overlay.id='jigsawSaveSuccess';
+    overlay.className='jigsaw-save-success';
+    overlay.innerHTML='<div class=\"jigsaw-save-success-card\">'+
+      '<div class=\"jigsaw-save-success-icon\">✓</div>'+
+      '<h3>Your puzzle is saved.</h3>'+
+      '<p>Your puzzle has been added to Saved Puzzles.</p>'+
+      '<div class=\"jigsaw-save-success-actions\">'+
+      '<button class=\"btn btn-primary\" id=\"jigsawSaveSuccessPlay\" type=\"button\">▶ Play</button>'+
+      '<button class=\"btn btn-secondary\" id=\"jigsawSaveSuccessClose\" type=\"button\">Close</button>'+
+      '</div></div>';
+    document.body.appendChild(overlay);
+    $('jigsawSaveSuccessClose').onclick=()=>overlay.remove();
+    $('jigsawSaveSuccessPlay').onclick=()=>{overlay.remove();startJigsaw(puzzle)};
+  };
+
+  window.playJigsawFromForm=function(){
+    const puzzle=buildJigsawFromForm(null);
+    if(!puzzle)return;
+    closeJigsawCreate();
+    startJigsaw(puzzle);
+  };
+  window.createJigsawPuzzle=function(){playJigsawFromForm()};
 
   window.editJigsawPuzzle=function(id){
     const puzzle=saved().find(x=>x.id===id); if(!puzzle)return;
@@ -8079,7 +8104,7 @@ document.addEventListener("click", function(e){
     $('jigsawSound').checked=puzzle.sound!==false; $('jigsawVisibility').value=puzzle.visibility||'public';
     if($('jigsawCustomBg'))$('jigsawCustomBg').value=puzzle.customBackground||'#0b0a12';
     setJigsawPieces(jPieces);
-    $('jigsawSaveBtn').textContent='💾 Update Puzzle'; $('jigsawCreatePlayBtn').textContent='🧩 Update & Play';
+    $('jigsawSaveBtn').textContent='💾 Update Puzzle'; $('jigsawCreatePlayBtn').textContent='▶ Play';
     renderJPreview();
     $('jigsawCreatePage')?.classList.add('open');$('jigsawCreatePage')?.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
   };
@@ -8541,4 +8566,14 @@ document.addEventListener("click", function(e){
     min-height:0!important;
   }
 }
+</style>
+
+<style id="jigsaw-save-success-v2">
+.jigsaw-save-success{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,3,10,.74);backdrop-filter:blur(7px)}
+.jigsaw-save-success-card{width:min(420px,92vw);padding:26px;border-radius:20px;background:#19162d;border:1px solid #393253;box-shadow:0 30px 100px rgba(0,0,0,.62);text-align:center}
+.jigsaw-save-success-icon{width:44px;height:44px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center;background:rgba(99,230,165,.14);border:1px solid rgba(99,230,165,.35);color:#63e6a5;font-size:24px;font-weight:1000}
+.jigsaw-save-success-card h3{font-size:22px;color:#f7f5fc;margin:0}
+.jigsaw-save-success-card p{margin:8px 0 18px;color:#9d98b1;font-size:13px}
+.jigsaw-save-success-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+@media(max-width:760px){.jigsaw-board{width:min(100%,82vh)!important;max-width:calc(100vw - 14px)!important}.jigsaw-board-wrap{padding-left:4px!important;padding-right:4px!important}}
 </style>
