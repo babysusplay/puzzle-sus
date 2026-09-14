@@ -8048,7 +8048,7 @@ document.addEventListener("click", function(e){
     };
   }
 
-  window.saveJigsawPuzzle=function(playAfter=false){
+  window.saveJigsawPuzzle=async function(playAfter=false){
     const existing=jEditingId?saved().find(x=>x.id===jEditingId):null;
     const puzzle=buildJigsawFromForm(existing);
     if(!puzzle)return;
@@ -8063,6 +8063,17 @@ document.addEventListener("click", function(e){
     jEditingId=null;
     closeJigsawCreate();
     window.renderSavedPuzzles?.();
+
+    /* Persist the saved Jigsaw to the logged-in account as well.
+       LocalStorage remains a fast local cache, while Supabase is the
+       durable source so saves survive logout/login and another device. */
+    try{
+      await persistJigsawSave(puzzle);
+    }catch(e){
+      console.error('Jigsaw cloud save failed',e);
+      toastMsg('Saved on this device, but cloud save failed. '+(e?.message||''));
+    }
+
     toastMsg(existing?'Jigsaw updated!':'Jigsaw saved!');
     if(playAfter){ startJigsaw(puzzle); return; }
     showJigsawSaveSuccess(puzzle);
@@ -8109,19 +8120,22 @@ document.addEventListener("click", function(e){
     $('jigsawCreatePage')?.classList.add('open');$('jigsawCreatePage')?.setAttribute('aria-hidden','false');document.body.classList.add('modal-open');
   };
 
-  window.deleteJigsawPuzzle=function(id){
+  window.deleteJigsawPuzzle=async function(id){
     const puzzle=saved().find(x=>x.id===id); if(!puzzle)return;
-    if(!confirm('Delete "'+puzzle.name.replace(/"/g,'\\"')+'"?'))return;
+    if(!confirm('Delete "'+puzzle.name.replace(/"/g,'\"')+'"?'))return;
     saveAll(saved().filter(x=>x.id!==id));
-    window.renderSavedPuzzles?.(); toastMsg('Jigsaw deleted.');
+    window.renderSavedPuzzles?.();
+    try{ await deleteJigsawCloudSave(id); }catch(e){ console.warn('Jigsaw cloud delete failed',e); }
+    toastMsg('Jigsaw deleted.');
   };
 
+
   /* =========================================================
-     JIGSAW CLOUD SHARING
-     - Puzzle image is uploaded to Supabase Storage.
-     - Puzzle settings are stored in public.jigsaw_puzzles.
-     - The shared URL contains only a short puzzle ID.
-     - Legacy long Base64 links remain readable for compatibility.
+     JIGSAW CLOUD STORAGE + SHORT SHARING
+     - Saved puzzles are synced to the logged-in account.
+     - Images live in Supabase Storage.
+     - Shared URLs contain only a short puzzle ID.
+     - Legacy long Base64 links remain readable.
   ========================================================= */
   const JIGSAW_SUPABASE_URL='https://wnjsajfahsqunfesmetu.supabase.co';
   const JIGSAW_SUPABASE_KEY='sb_publishable_S_ePD9oEegH0R0XR8LGvjQ_sMs9OZSm';
@@ -8132,6 +8146,15 @@ document.addEventListener("click", function(e){
     if(!window.supabase?.createClient)return null;
     jigsawCloudClient=window.supabase.createClient(JIGSAW_SUPABASE_URL,JIGSAW_SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
     return jigsawCloudClient;
+  }
+  async function getJigsawAuthUser(){
+    try{
+      if(typeof psAuthUser!=='undefined' && psAuthUser)return psAuthUser;
+      const c=typeof psGetAuthClient==='function'?psGetAuthClient():null;
+      if(!c)return null;
+      const r=await c.auth.getUser();
+      return r?.data?.user||null;
+    }catch(e){return null}
   }
   function jigsawShortId(){
     const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -8162,35 +8185,81 @@ document.addEventListener("click", function(e){
       return {id:'shared-jigsaw-'+Date.now().toString(36),name:data.n,image:data.i,pieces:Number(data.p)||16,rotation:!!data.r,timer:data.t||'up',scoring:data.s!==false,sound:data.a!==false,visibility:data.v||'public',showStats:data.g!==false,background:'custom',customBackground:data.c||'#0b0a12',createdAt:Date.now(),shared:true};
     }catch(e){return null}
   }
-  async function uploadJigsawForShare(p){
+  function cloudRowToJigsaw(data,shared=false){
+    return {id:data.id,name:data.name,image:data.image_url,pieces:Number(data.pieces)||16,rotation:!!data.rotation,timer:data.timer||'up',scoring:data.scoring!==false,sound:data.sound!==false,visibility:data.visibility||'public',showStats:data.show_stats!==false,background:'custom',customBackground:data.custom_background||'#0b0a12',createdAt:data.created_at?Date.parse(data.created_at):Date.now(),updatedAt:data.updated_at?Date.parse(data.updated_at):Date.now(),shared};
+  }
+  async function uploadJigsawImage(p,id){
     const client=getJigsawCloudClient();
     if(!client)throw new Error('Supabase is not ready. Please refresh and try again.');
-    const id=jigsawShortId();
     const blob=jigsawDataUrlToBlob(p.image);
-    const ext=(blob.type.split('/')[1]||'png').replace(/[^a-z0-9]/gi,'').toLowerCase()||'png';
-    const path=id+'.'+ext;
-    const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/png',upsert:false,cacheControl:'31536000'});
+    const ext=(blob.type.split('/')[1]||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase()||'jpg';
+    const path='puzzles/'+id+'.'+ext;
+    const upload=await client.storage.from('jigsaw-images').upload(path,blob,{contentType:blob.type||'image/jpeg',upsert:true,cacheControl:'31536000'});
     if(upload.error)throw upload.error;
     const pub=client.storage.from('jigsaw-images').getPublicUrl(path);
     if(!pub?.data?.publicUrl)throw new Error('Could not create image URL.');
-    const row={id,name:p.name,image_url:pub.data.publicUrl,pieces:Number(p.pieces)||16,rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,sound:p.sound!==false,visibility:p.visibility||'public',show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',created_by:null};
+    return {path,url:pub.data.publicUrl};
+  }
+  async function persistJigsawSave(p){
+    const user=await getJigsawAuthUser();
+    if(!user?.id)throw new Error('Please login before saving a cloud copy.');
+    const client=getJigsawCloudClient();
+    if(!client)throw new Error('Supabase is not ready.');
+    const img=await uploadJigsawImage(p,p.id);
+    const row={id:p.id,name:p.name,image_url:img.url,pieces:Number(p.pieces)||16,rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,sound:p.sound!==false,visibility:p.visibility||'public',show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',created_by:user.id};
+    const r=await client.from('jigsaw_puzzles').upsert(row,{onConflict:'id'});
+    if(r.error)throw r.error;
+  }
+  async function deleteJigsawCloudSave(id){
+    const user=await getJigsawAuthUser(); if(!user?.id)return;
+    const client=getJigsawCloudClient(); if(!client)return;
+    const r=await client.from('jigsaw_puzzles').delete().eq('id',id).eq('created_by',user.id);
+    if(r.error)throw r.error;
+    await client.storage.from('jigsaw-images').remove(['puzzles/'+id+'.jpg','puzzles/'+id+'.jpeg','puzzles/'+id+'.png','puzzles/'+id+'.webp']);
+  }
+  async function loadJigsawCloudSaves(){
+    const user=await getJigsawAuthUser();
+    if(!user?.id)return;
+    const client=getJigsawCloudClient(); if(!client)return;
+    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at,updated_at').eq('created_by',user.id).order('created_at',{ascending:false});
+    if(error){console.warn('Could not load saved Jigsaws from cloud',error);return;}
+    if(!Array.isArray(data))return;
+    const local=saved();
+    const byId=new Map(local.map(x=>[x.id,x]));
+    data.forEach(row=>{byId.set(row.id,cloudRowToJigsaw(row,false));});
+    const merged=[...byId.values()];
+    saveAll(merged);
+    window.renderSavedPuzzles?.();
+  }
+  function scheduleJigsawCloudLoad(){
+    setTimeout(()=>loadJigsawCloudSaves().catch(e=>console.warn(e)),700);
+  }
+  async function uploadJigsawForShare(p){
+    const client=getJigsawCloudClient();
+    if(!client)throw new Error('Supabase is not ready. Please refresh and try again.');
+    if(p.visibility==='private')throw new Error('Private puzzles cannot be shared. Change Visibility to Public or Unlisted.');
+    const id=jigsawShortId();
+    const img=await uploadJigsawImage(p,id);
+    const user=await getJigsawAuthUser();
+    const row={id,name:p.name,image_url:img.url,pieces:Number(p.pieces)||16,rotation:!!p.rotation,timer:p.timer||'up',scoring:p.scoring!==false,sound:p.sound!==false,visibility:p.visibility==='unlisted'?'unlisted':'public',show_stats:p.showStats!==false,custom_background:p.customBackground||'#0b0a12',created_by:user?.id||null};
     const ins=await client.from('jigsaw_puzzles').insert(row);
-    if(ins.error){await client.storage.from('jigsaw-images').remove([path]);throw ins.error;}
+    if(ins.error){await client.storage.from('jigsaw-images').remove([img.path]);throw ins.error;}
     return id;
   }
   async function fetchJigsawFromCloud(id){
     const client=getJigsawCloudClient();
     if(!client)throw new Error('Supabase is not ready.');
-    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at').eq('id',id).eq('visibility','public').maybeSingle();
+    const clean=String(id||'').trim();
+    if(!clean)throw new Error('Missing puzzle ID.');
+    const {data,error}=await client.from('jigsaw_puzzles').select('id,name,image_url,pieces,rotation,timer,scoring,sound,visibility,show_stats,custom_background,created_at,updated_at').eq('id',clean).in('visibility',['public','unlisted']).limit(1);
     if(error)throw error;
-    if(!data)return null;
-    return {id:data.id,name:data.name,image:data.image_url,pieces:Number(data.pieces)||16,rotation:!!data.rotation,timer:data.timer||'up',scoring:data.scoring!==false,sound:data.sound!==false,visibility:data.visibility||'public',showStats:data.show_stats!==false,background:'custom',customBackground:data.custom_background||'#0b0a12',createdAt:data.created_at?Date.parse(data.created_at):Date.now(),shared:true};
+    if(!data?.length)return null;
+    return cloudRowToJigsaw(data[0],true);
   }
   window.shareJigsawPuzzle=async function(id){
     const p=saved().find(x=>x.id===id); if(!p)return;
-    const oldText='Creating short link…';
     try{
-      toastMsg(oldText);
+      toastMsg('Creating short link…');
       const cloudId=await uploadJigsawForShare(p);
       const url=location.origin+location.pathname+'#jigsaw='+encodeURIComponent(cloudId);
       jigsawCopyLink(url);
@@ -8202,7 +8271,7 @@ document.addEventListener("click", function(e){
   window.playSharedJigsaw=function(code){
     const legacy=decodeLegacyJigsawShare(code);
     if(legacy){startJigsaw(legacy);return;}
-    fetchJigsawFromCloud(String(code||'')).then(p=>{if(p)startJigsaw(p);else toastMsg('Jigsaw puzzle not found.');}).catch(e=>{console.error(e);toastMsg('Could not load this Jigsaw puzzle.');});
+    fetchJigsawFromCloud(String(code||'')).then(p=>{if(p)startJigsaw(p);else toastMsg('Jigsaw puzzle not found.');}).catch(e=>{console.error(e);toastMsg('Could not load this Jigsaw puzzle. '+(e?.message||''));});
   };
   async function checkSharedJigsaw(){
     try{
@@ -8214,9 +8283,8 @@ document.addEventListener("click", function(e){
       if(legacy){startJigsaw(legacy);return;}
       const p=await fetchJigsawFromCloud(code);
       if(p)startJigsaw(p);else toastMsg('Jigsaw puzzle not found.');
-    }catch(e){console.error('Shared Jigsaw load failed',e);toastMsg('Could not load this Jigsaw puzzle.');}
+    }catch(e){console.error('Shared Jigsaw load failed',e);toastMsg('Could not load this Jigsaw puzzle. '+(e?.message||''));}
   }
-
 
   function gridFor(n){
     const side=Math.max(1,Math.round(Math.sqrt(Number(n)||16)));
@@ -8444,7 +8512,9 @@ document.addEventListener("click", function(e){
     return r;
   };
 
-  window.addEventListener('DOMContentLoaded',checkSharedJigsaw);
+  window.addEventListener('DOMContentLoaded',()=>{checkSharedJigsaw();scheduleJigsawCloudLoad();});
+  if(typeof psGetAuthClient==='function'){ const ac=psGetAuthClient(); if(ac) ac.auth.onAuthStateChange(()=>scheduleJigsawCloudLoad()); }
+  window.addEventListener('pageshow',scheduleJigsawCloudLoad);
   window.addEventListener('beforeunload',()=>clearInterval(jTimer));
 })();
 </script>
