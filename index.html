@@ -8392,7 +8392,7 @@ document.addEventListener("click", function(e){
       const g=document.createElementNS('http://www.w3.org/2000/svg','g');
       g.classList.add('jigsaw-piece');
       g.dataset.index=i;g.dataset.correctX=col*cw;g.dataset.correctY=row*ch;
-      g.dataset.rot=p.rotation?String(Math.floor(Math.random()*4)*90):'0';
+      g.dataset.rot='0';
       g.dataset.locked='0';
       g.setAttribute('pointer-events','all');
       g.style.cursor='grab';
@@ -8469,7 +8469,7 @@ document.addEventListener("click", function(e){
     applyPieceTransform(g,jDrag.tx+p.x-jDrag.startX,jDrag.ty+p.y-jDrag.startY,rot);
   }
   function rotatePiece(e){
-    if(!jPuzzle?.rotation)return;
+    if(!jPuzzle)return;
     const g=e.currentTarget;if(!g||g.dataset.locked==='1')return;
     e.preventDefault();e.stopPropagation();
     const [x,y]=readTranslate(g),rot=(readRotation(g)+90)%360;
