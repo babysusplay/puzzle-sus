@@ -8481,13 +8481,40 @@ document.addEventListener("click", function(e){
     const rot=readRotation(g),rotOK=!jPuzzle.rotation||rot===0;
     const dx=Math.abs(tx-cx),dy=Math.abs(ty-cy);
     const snap=Math.max(24,Math.min(52,800/Math.sqrt(jPuzzle.pieces)*.40));
-    jMoves++;if($('jigsawMoves'))$('jigsawMoves').textContent=jMoves;
-    if(dx<=snap&&dy<=snap&&rotOK){
+    /*
+       Competitive scoring:
+       - Every drag/release counts as one move.
+       - A wasted/incorrect move costs points immediately.
+       - A correct placement earns points based on current time and
+         how efficiently the player has been moving pieces.
+       This makes two players' final scores meaningfully different.
+    */
+    jMoves++;
+    if($('jigsawMoves'))$('jigsawMoves').textContent=jMoves;
+
+    const elapsedSeconds=Math.max(0,(Date.now()-jStarted)/1000);
+    const isCorrect=dx<=snap&&dy<=snap&&rotOK;
+
+    if(isCorrect){
       applyPieceTransform(g,cx,cy,0);g.dataset.locked='1';g.dataset.rot='0';g.style.cursor='default';
       normalizeJigsawLayering();
-      jDone++;if($('jigsawProgress'))$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
-      if(jPuzzle.scoring){jScore+=100;if($('jigsawScore'))$('jigsawScore').textContent=jScore}
+      jDone++;
+      if($('jigsawProgress'))$('jigsawProgress').textContent=`${jDone}/${jPuzzle.pieces}`;
+
+      if(jPuzzle.scoring){
+        const wastedMoves=Math.max(0,jMoves-jDone);
+        const timeFactor=Math.max(.35,1/(1+elapsedSeconds/90));
+        const moveFactor=Math.max(.45,1-(wastedMoves*.025));
+        const placementPoints=Math.max(35,Math.round(125*timeFactor*moveFactor));
+        jScore=Math.max(0,jScore+placementPoints);
+        if($('jigsawScore'))$('jigsawScore').textContent=jScore;
+      }
+
       if(jDone===jPuzzle.pieces)completeJigsaw();
+    }else if(jPuzzle.scoring){
+      const wrongMovePenalty=7;
+      jScore=Math.max(0,jScore-wrongMovePenalty);
+      if($('jigsawScore'))$('jigsawScore').textContent=jScore;
     }
     window.removeEventListener('pointermove',drag);jDrag=null;
   }
@@ -8507,7 +8534,19 @@ document.addEventListener("click", function(e){
     $('jigsawTime').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
   }
   function completeJigsaw(){
-    clearInterval(jTimer);const b=$('jigsawBoard');
+    clearInterval(jTimer);
+
+    /* Final performance bonus rewards fast, clean finishes. */
+    if(jPuzzle?.scoring){
+      const elapsedSeconds=Math.max(0,(Date.now()-jStarted)/1000);
+      const wastedMoves=Math.max(0,jMoves-jDone);
+      const speedBonus=Math.max(0,Math.round(450*Math.exp(-elapsedSeconds/180)));
+      const cleanBonus=Math.max(0,Math.round(220*Math.exp(-wastedMoves/12)));
+      jScore+=speedBonus+cleanBonus;
+      if($('jigsawScore'))$('jigsawScore').textContent=jScore;
+    }
+
+    const b=$('jigsawBoard');
     const d=document.createElement('div');d.className='jigsaw-complete';
     d.innerHTML=`<div class="jigsaw-complete-card"><div style="font-size:44px">🎉</div><h3>Puzzle Complete!</h3><p>${jMoves} moves • ${$('jigsawTime').textContent} • Score ${jScore}</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-secondary" onclick="replayJigsaw()">↻ Play Again</button><button class="btn btn-primary" onclick="closeJigsawGame()">Done</button></div></div>`;
     b.appendChild(d);
