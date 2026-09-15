@@ -8783,3 +8783,47 @@ document.addEventListener("click", function(e){
 .jigsaw-save-success-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
 @media(max-width:760px){.jigsaw-board{width:min(100%,82vh)!important;max-width:calc(100vw - 14px)!important}.jigsaw-board-wrap{padding-left:4px!important;padding-right:4px!important}}
 </style>
+
+
+<script>
+/* =========================================================
+   FINAL SAVED PUZZLE SHARE FIX
+   Always copies the link for the exact puzzle card clicked.
+   ========================================================= */
+window.sharePuzzle = function(id){
+    const cleanId = String(id || "").trim();
+    const list = (typeof puzzles !== "undefined" && Array.isArray(puzzles))
+        ? puzzles
+        : [];
+
+    const puzzle = list.find(p => String(p.id) === cleanId);
+
+    if(!puzzle){
+        if(typeof toast === "function") toast("Puzzle not found.");
+        return;
+    }
+
+    const code = encodeShortPuzzle({
+        ...puzzle,
+        id: cleanId
+    });
+
+    const url =
+        window.location.origin +
+        window.location.pathname +
+        "?p=" + encodeURIComponent(code) +
+        "&pid=" + encodeURIComponent(cleanId);
+
+    if(navigator.clipboard && window.isSecureContext){
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                if(typeof toast === "function") toast("Puzzle link copied! 🔗");
+            })
+            .catch(() => {
+                if(typeof showShareFallback === "function") showShareFallback(url);
+            });
+    }else if(typeof showShareFallback === "function"){
+        showShareFallback(url);
+    }
+};
+</script>
