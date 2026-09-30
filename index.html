@@ -3345,6 +3345,56 @@ const STORAGE = {
     userNumber: "puzzle_sus_user_number_v1"
 };
 
+let storageScope = "guest";
+
+function scopedStorageKey(key){
+    return key + "__" + storageScope;
+}
+
+function switchPuzzleStorage(user){
+    const nextScope = user?.id ? String(user.id) : "guest";
+    if(storageScope === nextScope) return;
+
+    const oldScope = storageScope;
+    const oldPuzzlesKey = scopedStorageKey(STORAGE.puzzles);
+    const oldHistoryKey = scopedStorageKey(STORAGE.history);
+
+    storageScope = nextScope;
+
+    const scopedPuzzlesKey = scopedStorageKey(STORAGE.puzzles);
+    const scopedHistoryKey = scopedStorageKey(STORAGE.history);
+
+    /* Migrate the old browser-only data once, to the account that is
+       already signed in. After that, every account gets its own data. */
+    if(nextScope !== "guest"){
+        const hasScopedPuzzles = localStorage.getItem(scopedPuzzlesKey) !== null;
+        const hasScopedHistory = localStorage.getItem(scopedHistoryKey) !== null;
+
+        if(!hasScopedPuzzles){
+            const legacyPuzzles = localStorage.getItem(STORAGE.puzzles);
+            if(legacyPuzzles !== null) localStorage.setItem(scopedPuzzlesKey, legacyPuzzles);
+        }
+        if(!hasScopedHistory){
+            const legacyHistory = localStorage.getItem(STORAGE.history);
+            if(legacyHistory !== null) localStorage.setItem(scopedHistoryKey, legacyHistory);
+        }
+
+        localStorage.removeItem(STORAGE.puzzles);
+        localStorage.removeItem(STORAGE.history);
+        localStorage.removeItem(STORAGE.userNumber);
+    }
+
+    puzzles = loadJSON(STORAGE.puzzles, []);
+    history = loadJSON(STORAGE.history, []);
+
+    if(typeof renderSavedPuzzles === "function") renderSavedPuzzles();
+    if(typeof renderHistory === "function") renderHistory();
+
+    void oldScope;
+    void oldPuzzlesKey;
+    void oldHistoryKey;
+}
+
 
 /* =========================================================
    GLOBAL GAME STATE
@@ -3387,7 +3437,9 @@ function loadJSON(key, fallback){
 
     try{
 
-        const data = localStorage.getItem(key);
+        const data = localStorage.getItem(
+            scopedStorageKey(key)
+        );
 
         return data
             ? JSON.parse(data)
@@ -3405,7 +3457,7 @@ function loadJSON(key, fallback){
 function saveJSON(key, data){
 
     localStorage.setItem(
-        key,
+        scopedStorageKey(key),
         JSON.stringify(data)
     );
 
@@ -3482,7 +3534,7 @@ function getUserId(){
 
     let number = Number(
         localStorage.getItem(
-            STORAGE.userNumber
+            scopedStorageKey(STORAGE.userNumber)
         )
     );
 
@@ -3500,7 +3552,7 @@ function getUserId(){
     */
 
     localStorage.setItem(
-        STORAGE.userNumber,
+        scopedStorageKey(STORAGE.userNumber),
         String(number + 1)
     );
 
@@ -7032,6 +7084,7 @@ async function psLoadAuth(){
     const {data,error} = await client.auth.getSession();
     if(error) console.warn("Puzzle Sus auth session:", error);
     psAuthUser = data?.session?.user || null;
+    switchPuzzleStorage(psAuthUser);
     updateAuthArea();
     return psAuthUser;
 }
@@ -7094,6 +7147,7 @@ async function logoutLocal(){
     if(client) await client.auth.signOut();
     psAuthUser=null;
     psAuthReady=Promise.resolve(null);
+    switchPuzzleStorage(null);
     updateAuthArea();
     toast("Logged out from Sus Games.");
 }
@@ -7117,6 +7171,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         client.auth.onAuthStateChange((_event,session)=>{
             psAuthUser=session?.user||null;
             psAuthReady=Promise.resolve(psAuthUser);
+            switchPuzzleStorage(psAuthUser);
             updateAuthArea();
         });
     }
