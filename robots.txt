@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://babysusplay.github.io/puzzle-sus/sitemap.xml
